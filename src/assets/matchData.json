@@ -1,0 +1,233 @@
+{
+  "leagues": {
+    "nba": {
+      "id": "nba",
+      "name": "NBA",
+      "sport": "basketball",
+      "gender": "m",
+      "imageURL": "https://via.placeholder.com/100x100/1a1a2e/16213e?text=NBA"
+    },
+    "f1": {
+      "id": "f1",
+      "name": "Formula 1",
+      "sport": "racing",
+      "imageURL": "https://via.placeholder.com/100x100/e94560/0f3460?text=F1"
+    },
+    "fifa": {
+      "id": "fifa",
+      "name": "FIFA World Cup",
+      "sport": "soccer",
+      "gender": "m",
+      "imageURL": "https://via.placeholder.com/100x100/16537e/533483?text=FIFA"
+    },
+    "wwe": {
+      "id": "wwe",
+      "name": "WWE",
+      "sport": "wrestling",
+      "imageURL": "https://via.placeholder.com/100x100/d4af37/1a1a2e?text=WWE"
+    }
+  },
+  "competitors": {
+    "nba": {
+      "okc": {
+        "id": "okc",
+        "name": "Oklahoma City Thunder",
+        "abbreviation": "OKC",
+        "imageURL": "https://via.placeholder.com/80x80/007ac1/ffffff?text=OKC"
+      },
+      "ind": {
+        "id": "ind",
+        "name": "Indiana Pacers",
+        "abbreviation": "IND",
+        "imageURL": "https://via.placeholder.com/80x80/002d62/fdbb30?text=IND"
+      }
+    },
+    "f1": {
+      "verstappen": {
+        "id": "verstappen",
+        "name": "Max Verstappen",
+        "abbreviation": "VER",
+        "imageURL": "https://via.placeholder.com/80x80/0600ef/ffffff?text=VER"
+      },
+      "hamilton": {
+        "id": "hamilton",
+        "name": "Lewis Hamilton",
+        "abbreviation": "HAM",
+        "imageURL": "https://via.placeholder.com/80x80/00d2be/ffffff?text=HAM"
+      },
+      "leclerc": {
+        "id": "leclerc",
+        "name": "Charles Leclerc",
+        "abbreviation": "LEC",
+        "imageURL": "https://via.placeholder.com/80x80/dc143c/ffffff?text=LEC"
+      },
+      "norris": {
+        "id": "norris",
+        "name": "Lando Norris",
+        "abbreviation": "NOR",
+        "imageURL": "https://via.placeholder.com/80x80/ff8700/ffffff?text=NOR"
+      },
+      "russell": {
+        "id": "russell",
+        "name": "George Russell",
+        "abbreviation": "RUS",
+        "imageURL": "https://via.placeholder.com/80x80/00d2be/ffffff?text=RUS"
+      }
+    },
+    "fifa": {
+      "argentina": {
+        "id": "argentina",
+        "name": "Argentina",
+        "abbreviation": "ARG",
+        "imageURL": "https://via.placeholder.com/80x80/74acdf/ffffff?text=ARG"
+      },
+      "brazil": {
+        "id": "brazil",
+        "name": "Brazil",
+        "abbreviation": "BRA",
+        "imageURL": "https://via.placeholder.com/80x80/009739/ffdf00?text=BRA"
+      },
+      "france": {
+        "id": "france",
+        "name": "France",
+        "abbreviation": "FRA",
+        "imageURL": "https://via.placeholder.com/80x80/0055a4/ffffff?text=FRA"
+      },
+      "spain": {
+        "id": "spain",
+        "name": "Spain",
+        "abbreviation": "ESP",
+        "imageURL": "https://via.placeholder.com/80x80/aa151b/ffdf00?text=ESP"
+      }
+    },
+    "wwe": {
+      "reigns": {
+        "id": "reigns",
+        "name": "Roman Reigns",
+        "abbreviation": "RR",
+        "imageURL": "https://via.placeholder.com/80x80/1a1a2e/d4af37?text=RR"
+      },
+      "rollins": {
+        "id": "rollins",
+        "name": "Seth Rollins",
+        "abbreviation": "SR",
+        "imageURL": "https://via.placeholder.com/80x80/1a1a2e/e94560?text=SR"
+      },
+      "mcintyre": {
+        "id": "mcintyre",
+        "name": "Drew McIntyre",
+        "abbreviation": "DM",
+        "imageURL": "https://via.placeholder.com/80x80/1a1a2e/16537e?text=DM"
+      },
+      "cena": {
+        "id": "cena",
+        "name": "John Cena",
+        "abbreviation": "JC",
+        "imageURL": "https://via.placeholder.com/80x80/1a1a2e/00d2be?text=JC"
+      },
+      "lesnar": {
+        "id": "lesnar",
+        "name": "Brock Lesnar",
+        "abbreviation": "BL",
+        "imageURL": "https://via.placeholder.com/80x80/1a1a2e/ff8700?text=BL"
+      },
+      "orton": {
+        "id": "orton",
+        "name": "Randy Orton",
+        "abbreviation": "RO",
+        "imageURL": "https://via.placeholder.com/80x80/1a1a2e/533483?text=RO"
+      }
+    }
+  },
+  "matches": {
+    "orderedIDsForDisplay": [
+      "nba_finals_2025",
+      "f1_singapore_2025",
+      "fifa_semifinal_1",
+      "fifa_semifinal_2",
+      "wwe_royal_rumble_1",
+      "wwe_royal_rumble_2",
+      "wwe_championship"
+    ],
+    "data": {
+      "nba_finals_2025": {
+        "id": "nba_finals_2025",
+        "leagueID": "nba",
+        "location": {
+          "title": "Madison Square Garden"
+        },
+        "scheduledDateInUTC": "2025-06-15T20:00:00Z",
+        "title": "2025 NBA Finals",
+        "subtitle": "Oklahoma City Thunder vs. Indiana Pacers",
+        "competitorIDs": ["okc", "ind"],
+        "conference": "Finals"
+      },
+      "f1_singapore_2025": {
+        "id": "f1_singapore_2025",
+        "leagueID": "f1",
+        "location": {
+          "title": "Marina Bay Street Circuit"
+        },
+        "scheduledDateInUTC": "2025-10-05T12:00:00Z",
+        "title": "Singapore Grand Prix 2025",
+        "subtitle": "Formula 1 World Championship",
+        "competitorIDs": ["verstappen", "hamilton", "leclerc", "norris", "russell"]
+      },
+      "fifa_semifinal_1": {
+        "id": "fifa_semifinal_1",
+        "leagueID": "fifa",
+        "location": {
+          "title": "Lusail Stadium"
+        },
+        "scheduledDateInUTC": "2025-12-18T19:00:00Z",
+        "title": "FIFA World Cup Semifinal",
+        "subtitle": "Argentina vs. Brazil",
+        "competitorIDs": ["argentina", "brazil"]
+      },
+      "fifa_semifinal_2": {
+        "id": "fifa_semifinal_2",
+        "leagueID": "fifa",
+        "location": {
+          "title": "Al Bayt Stadium"
+        },
+        "scheduledDateInUTC": "2025-12-19T19:00:00Z",
+        "title": "FIFA World Cup Semifinal",
+        "subtitle": "France vs. Spain",
+        "competitorIDs": ["france", "spain"]
+      },
+      "wwe_royal_rumble_1": {
+        "id": "wwe_royal_rumble_1",
+        "leagueID": "wwe",
+        "location": {
+          "title": "Alamodome"
+        },
+        "scheduledDateInUTC": "2025-01-28T01:00:00Z",
+        "title": "Royal Rumble 2025",
+        "subtitle": "Roman Reigns vs. Seth Rollins",
+        "competitorIDs": ["reigns", "rollins"]
+      },
+      "wwe_royal_rumble_2": {
+        "id": "wwe_royal_rumble_2",
+        "leagueID": "wwe",
+        "location": {
+          "title": "Alamodome"
+        },
+        "scheduledDateInUTC": "2025-01-28T02:00:00Z",
+        "title": "Royal Rumble 2025",
+        "subtitle": "Drew McIntyre vs. John Cena",
+        "competitorIDs": ["mcintyre", "cena"]
+      },
+      "wwe_championship": {
+        "id": "wwe_championship",
+        "leagueID": "wwe",
+        "location": {
+          "title": "WWE Performance Center"
+        },
+        "scheduledDateInUTC": "2025-02-15T01:00:00Z",
+        "title": "WWE Championship Match",
+        "subtitle": "Brock Lesnar vs. Randy Orton",
+        "competitorIDs": ["lesnar", "orton"]
+      }
+    }
+  }
+}

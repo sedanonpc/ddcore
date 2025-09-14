@@ -1,0 +1,26 @@
+{
+  "adjectives": [
+    "Blazing", "Cosmic", "Cyber", "Digital", "Electric", "Fierce", "Galactic", "Hyper", "Infinite", "Legendary",
+    "Mystic", "Neon", "Orbital", "Phantom", "Quantum", "Radiant", "Stellar", "Turbo", "Ultra", "Vivid",
+    "Wicked", "Xenon", "Zealous", "Atomic", "Binary", "Chrome", "Dynamic", "Epic", "Fusion", "Glitch",
+    "Holographic", "Ionic", "Kinetic", "Laser", "Matrix", "Neural", "Omega", "Pixel", "Quasar", "Robotic",
+    "Sonic", "Techno", "Unified", "Virtual", "Wireless", "Xtreme", "Yonder", "Zephyr", "Astral", "Bionic",
+    "Crimson", "Dazzling", "Ethereal", "Fractal", "Graphite", "Hexagon", "Iridescent", "Jade", "Kinetic", "Luminous",
+    "Magnetic", "Nebula", "Obsidian", "Prism", "Quartz", "Razor", "Silver", "Titanium", "Umbral", "Velocity",
+    "Warped", "Xenial", "Yielding", "Zircon", "Apex", "Bolt", "Circuit", "Drift", "Echo", "Flash",
+    "Glow", "Haze", "Impact", "Jolt", "Kinetic", "Lightning", "Mach", "Nova", "Onyx", "Pulse",
+    "Quest", "Rush", "Spark", "Thrust", "Vortex", "Wave", "Xenith", "Yaw", "Zoom", "Aero"
+  ],
+  "nouns": [
+    "Warrior", "Phoenix", "Dragon", "Tiger", "Eagle", "Wolf", "Falcon", "Panther", "Viper", "Shark",
+    "Thunder", "Lightning", "Storm", "Blaze", "Frost", "Shadow", "Ghost", "Phantom", "Specter", "Wraith",
+    "Knight", "Guardian", "Sentinel", "Defender", "Champion", "Hero", "Legend", "Master", "Ace", "Elite",
+    "Ninja", "Samurai", "Ronin", "Shogun", "Emperor", "King", "Lord", "Duke", "Baron", "Count",
+    "Hunter", "Ranger", "Scout", "Tracker", "Stalker", "Sniper", "Assassin", "Rogue", "Thief", "Bandit",
+    "Mage", "Wizard", "Sorcerer", "Warlock", "Shaman", "Druid", "Cleric", "Paladin", "Monk", "Berserker",
+    "Gladiator", "Spartan", "Viking", "Crusader", "Templar", "Centurion", "Legionnaire", "Praetorian", "Hoplite", "Phalanx",
+    "Cyborg", "Android", "Robot", "Mech", "Drone", "Pilot", "Captain", "Admiral", "General", "Commander",
+    "Agent", "Operative", "Spy", "Detective", "Inspector", "Marshal", "Sheriff", "Constable", "Officer", "Sergeant",
+    "Rebel", "Outlaw", "Maverick", "Renegade", "Fugitive", "Exile", "Nomad", "Wanderer", "Drifter", "Vagabond"
+  ]
+}
