@@ -1,6 +1,7 @@
 import React from 'react';
 import { DatabaseBet } from '../types';
 import { matchDataService } from '../utils/matchData';
+import { blockchainService } from '../services/blockchain';
 import '../styles/cyberpunk.css';
 
 interface BetListItemViewProps {
@@ -16,6 +17,15 @@ interface BetListItemViewProps {
 const BetListItemView: React.FC<BetListItemViewProps> = ({ bet, onSelect }) => {
   const { data } = bet;
   const { match, league, matchCompetitors, bet: betData } = data;
+  
+  // Get current user
+  const currentUser = blockchainService.getCurrentUser();
+  
+  // Check if current user is the bet creator
+  const isCreator = currentUser?.username === bet.creator_username;
+  
+  // Check if bet can be accepted (is open and user is not creator)
+  const canAcceptBet = bet.status === 'open' && !isCreator;
   
   // Get creator's selected competitor
   const creatorCompetitor = matchCompetitors[betData.creator.selectedCompetitorID];
@@ -43,14 +53,47 @@ const BetListItemView: React.FC<BetListItemViewProps> = ({ bet, onSelect }) => {
   // Get bet question text
   const betQuestion = matchDataService.getBetQuestion(match.id);
 
+  // Get status badge properties
+  const getStatusBadge = () => {
+    switch (bet.status) {
+      case 'open':
+        return {
+          text: 'OPEN',
+          color: 'var(--accent-green)',
+          textColor: 'var(--text-primary)'
+        };
+      case 'accepted':
+        return {
+          text: 'ACCEPTED',
+          color: 'var(--accent-orange)',
+          textColor: 'var(--text-primary)'
+        };
+      case 'resolved':
+        return {
+          text: 'RESOLVED',
+          color: 'var(--accent-blue)',
+          textColor: 'var(--text-primary)'
+        };
+      default:
+        return {
+          text: String(bet.status).toUpperCase(),
+          color: 'var(--text-muted)',
+          textColor: 'var(--text-primary)'
+        };
+    }
+  };
+
+  const statusBadge = getStatusBadge();
+
   return (
     <div 
       className="bet-item card"
       style={{
-        cursor: 'pointer',
-        position: 'relative'
+        cursor: canAcceptBet ? 'pointer' : 'default',
+        position: 'relative',
+        opacity: canAcceptBet ? 1 : 0.8
       }}
-      onClick={onSelect}
+      onClick={canAcceptBet ? onSelect : undefined}
     >
       {/* Bet Status Badge */}
       <div 
@@ -59,8 +102,8 @@ const BetListItemView: React.FC<BetListItemViewProps> = ({ bet, onSelect }) => {
           position: 'absolute',
           top: 'var(--spacing-md)',
           right: 'var(--spacing-md)',
-          background: 'var(--accent-green)',
-          color: 'var(--text-primary)',
+          background: statusBadge.color,
+          color: statusBadge.textColor,
           padding: 'var(--spacing-xs) var(--spacing-sm)',
           borderRadius: 'var(--radius-sm)',
           fontSize: '0.75rem',
@@ -68,7 +111,7 @@ const BetListItemView: React.FC<BetListItemViewProps> = ({ bet, onSelect }) => {
           zIndex: 2
         }}
       >
-        OPEN
+        {statusBadge.text}
       </div>
 
       {/* League Info */}
@@ -291,16 +334,39 @@ const BetListItemView: React.FC<BetListItemViewProps> = ({ bet, onSelect }) => {
         </div>
       </div>
 
-      {/* Accept Button */}
-      <button
-        className="btn btn-primary w-full"
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect();
-        }}
-      >
-        Accept Bet
-      </button>
+      {/* Accept Button - Only show for open bets and non-creators */}
+      {canAcceptBet && (
+        <button
+          className="btn btn-primary w-full"
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelect();
+          }}
+        >
+          Accept Bet
+        </button>
+      )}
+
+      {/* Show status message for non-acceptable bets */}
+      {!canAcceptBet && (
+        <div 
+          className="bet-status-message"
+          style={{
+            textAlign: 'center',
+            padding: 'var(--spacing-md)',
+            background: 'var(--bg-tertiary)',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--border-primary)',
+            color: 'var(--text-muted)',
+            fontSize: '0.875rem'
+          }}
+        >
+          {bet.status !== 'open' 
+            ? `This bet is ${bet.status}` 
+            : 'You cannot accept your own bet'
+          }
+        </div>
+      )}
 
       {/* Special styling for F1 bets */}
       {isF1Bet && (
@@ -322,3 +388,5 @@ const BetListItemView: React.FC<BetListItemViewProps> = ({ bet, onSelect }) => {
 };
 
 export default BetListItemView;
+
+

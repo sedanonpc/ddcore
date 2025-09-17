@@ -19,6 +19,7 @@ const BetListView: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLeague, setSelectedLeague] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,19 +30,19 @@ const BetListView: React.FC = () => {
       return;
     }
 
-    loadOpenBets();
+    loadAllBets();
   }, [navigate]);
 
   /**
-   * Load all open bets from the database
+   * Load all bets from the database
    */
-  const loadOpenBets = async () => {
+  const loadAllBets = async () => {
     try {
       setIsLoading(true);
       setError(null);
       
-      const openBets = await supabaseService.getOpenBets();
-      setBets(openBets);
+      const allBets = await supabaseService.getAllBets();
+      setBets(allBets);
     } catch (err: any) {
       console.error('Failed to load bets:', err);
       setError(err.message || 'Failed to load bets. Please try again.');
@@ -51,13 +52,18 @@ const BetListView: React.FC = () => {
   };
 
   /**
-   * Filter bets based on search query and league selection
+   * Filter bets based on search query, league selection, and status
    */
   const filteredBets = bets.filter(bet => {
     const currentUser = blockchainService.getCurrentUser();
 
     // Filter by league
     if (selectedLeague !== 'all' && bet.data.league.id !== selectedLeague) {
+      return false;
+    }
+
+    // Filter by status
+    if (selectedStatus !== 'all' && bet.status !== selectedStatus) {
       return false;
     }
 
@@ -100,7 +106,7 @@ const BetListView: React.FC = () => {
   const handleBetAccepted = () => {
     setSelectedBet(null);
     // Reload bets to reflect changes
-    loadOpenBets();
+    loadAllBets();
   };
 
   /**
@@ -118,7 +124,7 @@ const BetListView: React.FC = () => {
    * Refresh bets list
    */
   const handleRefresh = () => {
-    loadOpenBets();
+    loadAllBets();
   };
 
   if (isLoading) {
@@ -126,10 +132,10 @@ const BetListView: React.FC = () => {
       <div className="loading-overlay">
         <div className="loading-spinner-large" />
         <h3 style={{ color: 'var(--text-primary)', marginBottom: 'var(--spacing-sm)' }}>
-          Loading Open Bets
+          Loading All Bets
         </h3>
         <p style={{ color: 'var(--text-secondary)' }}>
-          Fetching available betting opportunities...
+          Fetching betting history and opportunities...
         </p>
       </div>
     );
@@ -156,9 +162,9 @@ const BetListView: React.FC = () => {
           }}
         >
           <div>
-            <h1 className="text-glow">Open Bets</h1>
+            <h1 className="text-glow">All Bets</h1>
             <p style={{ color: 'var(--text-secondary)', fontSize: '1.125rem' }}>
-              Accept a bet and dare to challenge another player
+              View all bets, accept open challenges, and track bet history
             </p>
           </div>
           
@@ -250,6 +256,21 @@ const BetListView: React.FC = () => {
           </select>
         </div>
 
+        {/* Status Filter */}
+        <div className="status-filter" style={{ minWidth: '150px' }}>
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            className="form-select"
+            style={{ margin: 0 }}
+          >
+            <option value="all">All Statuses</option>
+            <option value="open">Open</option>
+            <option value="accepted">Accepted</option>
+            <option value="resolved">Resolved</option>
+          </select>
+        </div>
+
         {/* Results Count */}
         <div 
           className="results-count"
@@ -293,22 +314,23 @@ const BetListView: React.FC = () => {
           }}
         >
           <h3 style={{ color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
-            {error ? 'Unable to load bets' : 'No open bets found'}
+            {error ? 'Unable to load bets' : 'No bets found'}
           </h3>
           <p style={{ color: 'var(--text-muted)', marginBottom: 'var(--spacing-lg)' }}>
             {error 
               ? 'There was an error loading the bets. Please try refreshing.'
-              : searchQuery || selectedLeague !== 'all' 
+              : searchQuery || selectedLeague !== 'all' || selectedStatus !== 'all'
                 ? 'Try adjusting your search criteria or filters'
-                : 'No bets are currently available for acceptance. Check back later or create your own bet!'
+                : 'No bets are currently available. Check back later or create your own bet!'
             }
           </p>
           
-          {(searchQuery || selectedLeague !== 'all') && !error && (
+          {(searchQuery || selectedLeague !== 'all' || selectedStatus !== 'all') && !error && (
             <button
               onClick={() => {
                 setSearchQuery('');
                 setSelectedLeague('all');
+                setSelectedStatus('all');
               }}
               className="btn btn-secondary mb-md"
             >

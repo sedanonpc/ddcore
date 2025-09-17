@@ -493,3 +493,5 @@ const MatchResolutionView: React.FC = () => {
 };
 
 export default MatchResolutionView;
+
+

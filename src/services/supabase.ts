@@ -94,6 +94,28 @@ export class SupabaseService {
   }
 
   /**
+   * Get all bets from the database regardless of status
+   */
+  public async getAllBets(): Promise<DatabaseBet[]> {
+    try {
+      const { data, error } = await this.supabase
+        .from('bets')
+        .select('*')
+        .order('created_date_utc', { ascending: false });
+
+      if (error) {
+        console.error('Supabase query error:', error);
+        throw new Error(`Failed to fetch all bets: ${error.message}`);
+      }
+
+      return data || [];
+    } catch (error: any) {
+      console.error('Get all bets failed:', error);
+      throw new Error(`Failed to get all bets: ${error.message}`);
+    }
+  }
+
+  /**
    * Get bets by status
    */
   public async getBetsByStatus(status: BetStatus): Promise<DatabaseBet[]> {
@@ -314,3 +336,4 @@ export class SupabaseService {
 
 // Export singleton instance
 export const supabaseService = new SupabaseService();
+

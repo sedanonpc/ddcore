@@ -27,3 +27,5 @@ EOF
 
 echo "✅ Created migration: $MIGRATION_PATH"
 echo "📝 Edit the file and then run: supabase db push"
+
+

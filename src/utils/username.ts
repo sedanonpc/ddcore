@@ -112,3 +112,4 @@ export class UsernameGenerator {
 
 // Export singleton instance
 export const usernameGenerator = new UsernameGenerator();
+

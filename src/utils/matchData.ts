@@ -185,3 +185,4 @@ export class MatchDataService {
 
 // Export singleton instance
 export const matchDataService = new MatchDataService();
+
