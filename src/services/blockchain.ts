@@ -285,16 +285,43 @@ export class BlockchainService {
     }
 
     try {
+      console.log('🔗 BLOCKCHAIN: Sending resolveBet transaction', {
+        betId,
+        winningSelection,
+        finalMetadataURI
+      });
+
       const tx = await this.bettingContract.resolveBet(
         betId,
         winningSelection,
         finalMetadataURI
       );
 
+      console.log('🔗 BLOCKCHAIN: Transaction sent, waiting for confirmation', {
+        transactionHash: tx.hash,
+        betId
+      });
+
       const receipt = await tx.wait();
+      
+      console.log('🔗 BLOCKCHAIN: Transaction confirmed', {
+        transactionHash: receipt.transactionHash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: receipt.gasUsed.toString(),
+        betId
+      });
+
+      // Log any events emitted by the transaction
+      if (receipt.events && receipt.events.length > 0) {
+        console.log('🔗 BLOCKCHAIN: Events emitted:', receipt.events.map(event => ({
+          event: event.event,
+          args: event.args
+        })));
+      }
+
       return receipt.transactionHash;
     } catch (error: any) {
-      console.error('Resolve bet failed:', error);
+      console.error('🔗 BLOCKCHAIN: Resolve bet failed:', error);
       throw new Error(`Failed to resolve bet: ${error.message}`);
     }
   }
@@ -366,6 +393,51 @@ export class BlockchainService {
         console.error('Failed to switch to Core Testnet2:', switchError);
         throw new Error('Please manually switch to Core Testnet2 in MetaMask');
       }
+    }
+  }
+
+  /**
+   * Reconnect to wallet if user data exists in localStorage
+   * Call this on page load to restore wallet connection
+   */
+  public async reconnectWallet(): Promise<boolean> {
+    try {
+      // Check if user data exists in localStorage
+      const userData = localStorage.getItem('user');
+      if (!userData) {
+        return false;
+      }
+
+      // Check if MetaMask is available
+      if (!this.isMetaMaskInstalled()) {
+        return false;
+      }
+
+      // Check if MetaMask is already connected
+      const accounts = await window.ethereum!.request({ 
+        method: 'eth_accounts' 
+      });
+      
+      if (accounts.length === 0) {
+        // User is no longer connected in MetaMask
+        this.disconnect();
+        return false;
+      }
+
+      // Reinitialize provider and signer
+      this.provider = new ethers.providers.Web3Provider(window.ethereum!);
+      this.signer = this.provider.getSigner();
+      
+      // Reinitialize contracts
+      this.initializeContracts();
+      
+      console.log('Wallet reconnected successfully');
+      return true;
+      
+    } catch (error: any) {
+      console.error('Failed to reconnect wallet:', error);
+      this.disconnect(); // Clear any partial state
+      return false;
     }
   }
 

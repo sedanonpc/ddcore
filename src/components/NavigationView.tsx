@@ -30,6 +30,23 @@ const NavigationView: React.FC = () => {
     }
   }, [location]);
 
+  // Listen for wallet reconnection events
+  useEffect(() => {
+    const handleWalletReconnected = () => {
+      const currentUser = blockchainService.getCurrentUser();
+      setUser(currentUser);
+      if (currentUser && blockchainService.isConnected()) {
+        loadBalance();
+      }
+    };
+
+    window.addEventListener('walletReconnected', handleWalletReconnected);
+    
+    return () => {
+      window.removeEventListener('walletReconnected', handleWalletReconnected);
+    };
+  }, []);
+
   /**
    * Load user's wallet balance
    */
