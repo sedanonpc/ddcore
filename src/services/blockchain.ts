@@ -313,7 +313,7 @@ export class BlockchainService {
 
       // Log any events emitted by the transaction
       if (receipt.events && receipt.events.length > 0) {
-        console.log('🔗 BLOCKCHAIN: Events emitted:', receipt.events.map(event => ({
+        console.log('🔗 BLOCKCHAIN: Events emitted:', receipt.events.map((event: any) => ({
           event: event.event,
           args: event.args
         })));

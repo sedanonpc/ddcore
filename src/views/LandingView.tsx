@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { blockchainService } from '../services/blockchain';
+import { Squares } from '../components/Squares';
+import { ReactComponent as AgentBannerTitle } from '../assets/images/Agent hellracer banner title.svg';
 import '../styles/cyberpunk.css';
 
 /**
@@ -45,23 +47,32 @@ const LandingView: React.FC = () => {
 
   return (
     <div className="landing-container">
-      {/* Full-page background image */}
+      {/* Full-page animated background using Squares component */}
       <div 
         className="landing-background"
         style={{
-          backgroundImage: 'url(https://i.ibb.co/JRf70N7Z/daredevil-png.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
           minHeight: '100vh',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'flex-end',
           alignItems: 'center',
           padding: 'var(--spacing-xl)',
-          position: 'relative'
+          position: 'relative',
+          overflow: 'hidden'
         }}
       >
+        <div 
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 0
+          }}
+        >
+          <Squares direction="diagonal" speed={0.5} borderColor="#7f1d1d" squareSize={48} hoverFillColor="#1a0b0b" className="w-full h-full" />
+        </div>
         {/* Dark overlay for better text readability */}
         <div 
           style={{
@@ -74,6 +85,31 @@ const LandingView: React.FC = () => {
             zIndex: 1
           }}
         />
+        {/* Fixed header image at top */}
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            display: 'flex',
+            justifyContent: 'center',
+            paddingTop: 'var(--spacing-md)',
+            paddingBottom: 'var(--spacing-md)',
+            zIndex: 2,
+            pointerEvents: 'none'
+          }}
+        >
+          <AgentBannerTitle
+            role="img"
+            aria-label="Agent Hellracer"
+            style={{
+              maxWidth: 'min(90vw, 720px)',
+              width: '100%',
+              height: 'auto'
+            }}
+          />
+        </div>
         
         {/* Content container */}
         <div 
@@ -87,16 +123,6 @@ const LandingView: React.FC = () => {
         >
           {/* App branding */}
           <div className="landing-branding mb-lg">
-            <h1 
-              className="text-glow"
-              style={{
-                fontSize: '3rem',
-                marginBottom: 'var(--spacing-md)',
-                textShadow: '0 0 20px var(--accent-cyan)'
-              }}
-            >
-              {process.env.REACT_APP_MARKETING_NAME || 'Daredevil'}
-            </h1>
             <p 
               style={{
                 fontSize: '1.25rem',
