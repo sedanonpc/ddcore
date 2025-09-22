@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { blockchainService } from '../services/blockchain';
 import { User } from '../types';
+import { ReactComponent as DDLogo } from '../assets/images/dd svg.svg';
 import '../styles/cyberpunk.css';
 
 /**
@@ -98,11 +99,15 @@ const NavigationView: React.FC = () => {
   }
 
   return (
-    <nav className="navbar">
+    <nav className="navbar" style={{
+      background: 'var(--bg-primary)',
+      borderBottom: '1px solid #DB0004',
+      padding: 'var(--spacing-md) 0'
+    }}>
       <div 
         className="navbar-container"
         style={{
-          maxWidth: '1200px',
+          maxWidth: 'min(90vw, 720px)',
           margin: '0 auto',
           padding: '0 var(--spacing-lg)',
           display: 'flex',
@@ -115,8 +120,18 @@ const NavigationView: React.FC = () => {
           to="/matches" 
           className="navbar-brand"
           onClick={closeMenu}
+          style={{
+            textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center'
+          }}
         >
-          {process.env.REACT_APP_MARKETING_NAME || 'Daredevil'}
+          <DDLogo
+            style={{
+              width: '120px',
+              height: 'auto'
+            }}
+          />
         </Link>
 
         {/* Desktop Navigation */}
@@ -151,9 +166,9 @@ const NavigationView: React.FC = () => {
               gap: 'var(--spacing-md)',
               marginLeft: 'var(--spacing-lg)',
               padding: 'var(--spacing-sm) var(--spacing-md)',
-              background: 'var(--bg-tertiary)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-primary)'
+              background: '#000000',
+              borderRadius: '4px',
+              border: '1px solid #DB0004'
             }}
           >
             <div className="user-details">
@@ -178,12 +193,16 @@ const NavigationView: React.FC = () => {
             
             <button
               onClick={handleLogout}
-              className="btn btn-small"
               style={{
-                background: 'var(--accent-red)',
-                color: 'var(--text-primary)',
+                background: '#DB0004',
+                color: '#ffffff',
+                border: 'none',
                 padding: 'var(--spacing-xs) var(--spacing-sm)',
-                fontSize: '0.75rem'
+                fontSize: '0.75rem',
+                borderRadius: '2px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                textTransform: 'uppercase'
               }}
             >
               Logout
@@ -225,7 +244,7 @@ const NavigationView: React.FC = () => {
               display: 'flex',
               flexDirection: 'column',
               gap: 'var(--spacing-md)',
-              zIndex: 1000
+              zIndex: 800
             }}
           >
             <Link
@@ -249,9 +268,9 @@ const NavigationView: React.FC = () => {
               className="mobile-user-info"
               style={{
                 padding: 'var(--spacing-md)',
-                background: 'var(--bg-tertiary)',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-primary)',
+                background: '#000000',
+                borderRadius: '4px',
+                border: '1px solid #DB0004',
                 marginTop: 'var(--spacing-md)'
               }}
             >
@@ -277,10 +296,17 @@ const NavigationView: React.FC = () => {
               
               <button
                 onClick={handleLogout}
-                className="btn btn-small w-full"
                 style={{
-                  background: 'var(--accent-red)',
-                  color: 'var(--text-primary)'
+                  background: '#DB0004',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: 'var(--spacing-sm)',
+                  fontSize: '0.875rem',
+                  borderRadius: '2px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  textTransform: 'uppercase',
+                  width: '100%'
                 }}
               >
                 Logout

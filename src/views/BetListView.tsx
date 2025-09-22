@@ -5,6 +5,8 @@ import { blockchainService } from '../services/blockchain';
 import { DatabaseBet } from '../types';
 import BetListItemView from '../components/BetListItemView';
 import BetAcceptanceView from '../components/BetAcceptanceView';
+import { Squares } from '../components/Squares';
+import { ReactComponent as HellracerBanner } from '../assets/images/hellracer banner 2.svg';
 import '../styles/cyberpunk.css';
 
 /**
@@ -145,48 +147,136 @@ const BetListView: React.FC = () => {
     <div 
       className="bet-list-container"
       style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: 'var(--spacing-xl) var(--spacing-lg)'
+        minHeight: '100vh',
+        background: 'var(--bg-primary)',
+        position: 'relative',
+        overflow: 'hidden'
       }}
     >
-      {/* Header */}
-      <div className="bet-list-header mb-lg">
-        <div 
-          style={{
+      {/* Animated background using Squares component */}
+      <div 
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 0
+        }}
+      >
+        <Squares direction="diagonal" speed={0.5} borderColor="#7f1d1d" squareSize={48} hoverFillColor="#2a0a0a" className="w-full h-full" />
+      </div>
+      {/* Dark overlay for better text readability */}
+      <div 
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'linear-gradient(to bottom, rgba(10, 10, 15, 0.3), rgba(10, 10, 15, 0.8))',
+          zIndex: 1
+        }}
+      />
+      
+      {/* Content container */}
+      <div style={{
+        position: 'relative',
+        zIndex: 2,
+        maxWidth: 'min(90vw, 720px)',
+        margin: '0 auto',
+        padding: 'var(--spacing-xl) var(--spacing-lg)'
+      }}>
+        {/* Hellracer Banner */}
+        <div style={{
+          maxWidth: 'min(90vw, 720px)',
+          width: '100%',
+          margin: 'calc(-0.5 * var(--spacing-xl)) auto var(--spacing-lg) auto',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}>
+          <HellracerBanner
+            style={{
+              width: '100%',
+              maxWidth: '720px',
+              height: 'auto',
+              display: 'block',
+              imageRendering: 'crisp-edges',
+              shapeRendering: 'crispEdges',
+              textRendering: 'geometricPrecision'
+            }}
+          />
+        </div>
+
+        {/* Header Banner Card */}
+        <div className="header-banner-card" style={{
+          maxWidth: 'min(90vw, 720px)',
+          width: '100%',
+          margin: '0 auto var(--spacing-lg) auto'
+        }}>
+          {/* Red Header Bar */}
+          <div style={{
+            background: '#DB0004',
+            padding: '12px 16px',
+            borderTopLeftRadius: '4px',
+            borderTopRightRadius: '4px',
             display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            flexWrap: 'wrap',
-            gap: 'var(--spacing-md)'
-          }}
-        >
-          <div>
-            <h1 className="text-glow">All Bets</h1>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '1.125rem' }}>
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <span style={{
+              color: '#ffffff',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}>
+              ALL BETS
+            </span>
+            <button
+              onClick={handleRefresh}
+              disabled={isLoading}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#ffffff',
+                fontSize: '0.875rem',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                padding: '4px 8px',
+                borderRadius: '2px',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              {isLoading ? '⏳' : '🔄'} REFRESH
+            </button>
+          </div>
+          
+          {/* Black Content Area */}
+          <div style={{
+            background: '#000000',
+            border: '1px solid #DB0004',
+            borderTop: 'none',
+            borderBottomLeftRadius: '4px',
+            borderBottomRightRadius: '4px',
+            padding: '16px'
+          }}>
+            <p style={{ 
+              color: 'var(--text-secondary)', 
+              fontSize: '0.875rem',
+              margin: 0,
+              textAlign: 'center'
+            }}>
               View all bets, accept open challenges, and track bet history
             </p>
           </div>
-          
-          <button
-            onClick={handleRefresh}
-            disabled={isLoading}
-            className="btn btn-secondary"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--spacing-sm)'
-            }}
-          >
-            {isLoading ? (
-              <span className="loading-spinner" />
-            ) : (
-              <span>🔄</span>
-            )}
-            Refresh
-          </button>
         </div>
-      </div>
 
       {/* Error Message */}
       {error && (
@@ -213,20 +303,43 @@ const BetListView: React.FC = () => {
         </div>
       )}
 
-      {/* Filters */}
-      <div 
-        className="bet-filters mb-lg"
-        style={{
-          display: 'flex',
-          gap: 'var(--spacing-md)',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          padding: 'var(--spacing-lg)',
-          background: 'var(--bg-card)',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border-primary)'
-        }}
-      >
+        {/* Filters Banner Card */}
+        <div className="filters-banner-card" style={{
+          maxWidth: 'min(90vw, 720px)',
+          width: '100%',
+          margin: '0 auto var(--spacing-lg) auto'
+        }}>
+          {/* Red Header Bar */}
+          <div style={{
+            background: '#DB0004',
+            padding: '12px 16px',
+            borderTopLeftRadius: '4px',
+            borderTopRightRadius: '4px'
+          }}>
+            <span style={{
+              color: '#ffffff',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}>
+              FILTERS
+            </span>
+          </div>
+          
+          {/* Black Content Area */}
+          <div style={{
+            background: '#000000',
+            border: '1px solid #DB0004',
+            borderTop: 'none',
+            borderBottomLeftRadius: '4px',
+            borderBottomRightRadius: '4px',
+            padding: 'var(--spacing-lg)',
+            display: 'flex',
+            gap: 'var(--spacing-md)',
+            flexWrap: 'wrap',
+            alignItems: 'center'
+          }}>
         {/* Search Input */}
         <div className="search-container" style={{ flex: '1', minWidth: '250px' }}>
           <input
@@ -271,92 +384,116 @@ const BetListView: React.FC = () => {
           </select>
         </div>
 
-        {/* Results Count */}
-        <div 
-          className="results-count"
-          style={{
-            color: 'var(--text-muted)',
-            fontSize: '0.875rem',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          {filteredBets.length} bet{filteredBets.length !== 1 ? 's' : ''} available
-        </div>
-      </div>
-
-      {/* Bet List */}
-      {filteredBets.length > 0 ? (
-        <div 
-          className="bet-grid"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))',
-            gap: 'var(--spacing-lg)'
-          }}
-        >
-          {filteredBets.map(bet => (
-            <BetListItemView
-              key={bet.id}
-              bet={bet}
-              onSelect={() => handleBetSelect(bet)}
-            />
-          ))}
-        </div>
-      ) : (
-        <div 
-          className="no-bets"
-          style={{
-            textAlign: 'center',
-            padding: 'var(--spacing-2xl)',
-            background: 'var(--bg-card)',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-primary)'
-          }}
-        >
-          <h3 style={{ color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
-            {error ? 'Unable to load bets' : 'No bets found'}
-          </h3>
-          <p style={{ color: 'var(--text-muted)', marginBottom: 'var(--spacing-lg)' }}>
-            {error 
-              ? 'There was an error loading the bets. Please try refreshing.'
-              : searchQuery || selectedLeague !== 'all' || selectedStatus !== 'all'
-                ? 'Try adjusting your search criteria or filters'
-                : 'No bets are currently available. Check back later or create your own bet!'
-            }
-          </p>
-          
-          {(searchQuery || selectedLeague !== 'all' || selectedStatus !== 'all') && !error && (
-            <button
-              onClick={() => {
-                setSearchQuery('');
-                setSelectedLeague('all');
-                setSelectedStatus('all');
+            {/* Results Count */}
+            <div 
+              className="results-count"
+              style={{
+                color: 'var(--text-muted)',
+                fontSize: '0.875rem',
+                whiteSpace: 'nowrap'
               }}
-              className="btn btn-secondary mb-md"
             >
-              Clear Filters
-            </button>
-          )}
-          
-          <button
-            onClick={() => navigate('/matches')}
-            className="btn btn-primary"
-          >
-            Create New Bet
-          </button>
+              {filteredBets.length} bet{filteredBets.length !== 1 ? 's' : ''} available
+            </div>
+          </div>
         </div>
-      )}
 
-      {/* Bet Acceptance Modal */}
-      {selectedBet && (
-        <BetAcceptanceView
-          bet={selectedBet}
-          onClose={closeBetAcceptance}
-          onBetAccepted={handleBetAccepted}
-        />
-      )}
+        {/* Bet List */}
+        {filteredBets.length > 0 ? (
+          <div 
+            className="bet-grid"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--spacing-lg)'
+            }}
+          >
+            {filteredBets.map(bet => (
+              <BetListItemView
+                key={bet.id}
+                bet={bet}
+                onSelect={() => handleBetSelect(bet)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="no-bets-banner-card" style={{
+            maxWidth: 'min(90vw, 720px)',
+            width: '100%',
+            margin: '0 auto'
+          }}>
+            {/* Red Header Bar */}
+            <div style={{
+              background: '#DB0004',
+              padding: '12px 16px',
+              borderTopLeftRadius: '4px',
+              borderTopRightRadius: '4px'
+            }}>
+              <span style={{
+                color: '#ffffff',
+                fontSize: '0.875rem',
+                fontWeight: 'bold',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                NO BETS FOUND
+              </span>
+            </div>
+            
+            {/* Black Content Area */}
+            <div style={{
+              background: '#000000',
+              border: '1px solid #DB0004',
+              borderTop: 'none',
+              borderBottomLeftRadius: '4px',
+              borderBottomRightRadius: '4px',
+              padding: 'var(--spacing-2xl)',
+              textAlign: 'center'
+            }}>
+              <h3 style={{ color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
+                {error ? 'Unable to load bets' : 'No bets found'}
+              </h3>
+              <p style={{ color: 'var(--text-muted)', marginBottom: 'var(--spacing-lg)' }}>
+                {error 
+                  ? 'There was an error loading the bets. Please try refreshing.'
+                  : searchQuery || selectedLeague !== 'all' || selectedStatus !== 'all'
+                    ? 'Try adjusting your search criteria or filters'
+                    : 'No bets are currently available. Check back later or create your own bet!'
+                }
+              </p>
+              
+              {(searchQuery || selectedLeague !== 'all' || selectedStatus !== 'all') && !error && (
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSelectedLeague('all');
+                    setSelectedStatus('all');
+                  }}
+                  className="btn btn-secondary mb-md"
+                >
+                  Clear Filters
+                </button>
+              )}
+              
+              <button
+                onClick={() => navigate('/matches')}
+                className="btn btn-primary"
+              >
+                Create New Bet
+              </button>
+            </div>
+          </div>
+        )}
 
-      {/* Mobile styles are handled in the cyberpunk.css file */}
+        {/* Bet Acceptance Modal */}
+        {selectedBet && (
+          <BetAcceptanceView
+            bet={selectedBet}
+            onClose={closeBetAcceptance}
+            onBetAccepted={handleBetAccepted}
+          />
+        )}
+      </div>
     </div>
   );
 };

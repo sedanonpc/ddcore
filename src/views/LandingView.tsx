@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { blockchainService } from '../services/blockchain';
 import { Squares } from '../components/Squares';
+import FeaturedMatchCard from '../components/FeaturedMatchCard';
+import F1QualifyingResults from '../components/F1QualifyingResults';
+import F1MediaPlayer from '../components/F1MediaPlayer';
 import { ReactComponent as AgentBannerTitle } from '../assets/images/Agent hellracer banner title.svg';
+import { matchDataService } from '../utils/matchData';
+import { Match, League, Competitor } from '../types';
 import '../styles/cyberpunk.css';
 
 /**
@@ -13,7 +18,91 @@ import '../styles/cyberpunk.css';
 const LandingView: React.FC = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [featuredMatch, setFeaturedMatch] = useState<{
+    match: Match;
+    league: League;
+    competitors: Record<string, Competitor>;
+  } | null>(null);
   const navigate = useNavigate();
+
+  /**
+   * Load the next upcoming match for the featured section
+   */
+  useEffect(() => {
+    const loadFeaturedMatch = () => {
+      try {
+        // Get all matches and find the next upcoming one (regardless of how far in future)
+        const allMatches = matchDataService.getAllMatches();
+        const now = new Date();
+        
+        // Find the next match that's scheduled after now
+        const nextMatch = allMatches.find(match => {
+          const matchDate = new Date(match.scheduledDateInUTC);
+          return matchDate > now;
+        });
+        
+        if (nextMatch) {
+          const league = matchDataService.getLeague(nextMatch.leagueID);
+          const competitors = matchDataService.getMatchCompetitors(nextMatch.id);
+          
+          if (league) {
+            setFeaturedMatch({
+              match: nextMatch,
+              league,
+              competitors
+            });
+          }
+        } else {
+          // Fallback: if no future matches, show the most recent match
+          const mostRecentMatch = allMatches[0];
+          if (mostRecentMatch) {
+            const league = matchDataService.getLeague(mostRecentMatch.leagueID);
+            const competitors = matchDataService.getMatchCompetitors(mostRecentMatch.id);
+            
+            if (league) {
+              setFeaturedMatch({
+                match: mostRecentMatch,
+                league,
+                competitors
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load featured match:', error);
+      }
+    };
+
+    loadFeaturedMatch();
+  }, []);
+
+  /**
+   * Position Featured Match bar right below the invisible divider
+   */
+  useEffect(() => {
+    const positionFeaturedMatch = () => {
+      const divider = document.getElementById('svg-header-divider');
+      const featuredSection = document.querySelector('.featured-matches-section') as HTMLElement;
+      
+      if (divider && featuredSection) {
+        const dividerRect = divider.getBoundingClientRect();
+        const dividerBottom = dividerRect.bottom;
+        
+        // Position the Featured Match section right below the divider
+        featuredSection.style.top = `${dividerBottom}px`;
+      }
+    };
+
+    // Position on load and resize
+    positionFeaturedMatch();
+    window.addEventListener('resize', positionFeaturedMatch);
+    
+    return () => {
+      window.removeEventListener('resize', positionFeaturedMatch);
+    };
+  }, [featuredMatch]);
+
+
 
   /**
    * Handle MetaMask wallet connection
@@ -85,32 +174,73 @@ const LandingView: React.FC = () => {
             zIndex: 1
           }}
         />
-        {/* Fixed header image at top */}
+
+        {/* Header spacing - using document flow */}
         <div
           style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            display: 'flex',
-            justifyContent: 'center',
+            height: 'auto',
             paddingTop: 'var(--spacing-md)',
             paddingBottom: 'var(--spacing-md)',
-            zIndex: 2,
-            pointerEvents: 'none'
+            display: 'flex',
+            justifyContent: 'center',
+            position: 'relative',
+            zIndex: 2
           }}
         >
-          <AgentBannerTitle
-            role="img"
-            aria-label="Agent Hellracer"
+          <div
             style={{
               maxWidth: 'min(90vw, 720px)',
               width: '100%',
-              height: 'auto'
+              height: 'auto',
+              position: 'relative'
             }}
-          />
+          >
+            <AgentBannerTitle
+              role="img"
+              aria-label="Agent Hellracer"
+              style={{
+                maxWidth: 'min(90vw, 720px)',
+                width: '100%',
+                height: 'auto',
+                opacity: 1,
+                pointerEvents: 'none'
+              }}
+            />
+          </div>
         </div>
-        
+
+        {/* Sports Content Section - with consistent spacing */}
+        <div className="sports-content-section" style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: 'var(--spacing-lg)',
+          margin: 'var(--spacing-sm) auto var(--spacing-xs) auto',
+          maxWidth: 'min(90vw, 720px)',
+          width: '100%'
+        }}>
+          {/* Featured Matches Section */}
+          {featuredMatch && (
+            <div className="featured-matches-section">
+              <FeaturedMatchCard
+                match={featuredMatch.match}
+                league={featuredMatch.league}
+                competitors={featuredMatch.competitors}
+                allUpcomingMatches={matchDataService.getAllMatches().filter(m => {
+                  const matchDate = new Date(m.scheduledDateInUTC);
+                  return matchDate > new Date();
+                })}
+              />
+            </div>
+          )}
+
+          {/* F1 Qualifying Results - positioned right after UPCOMING banner for desktop only */}
+          <div className="qualifying-desktop-position">
+            <F1QualifyingResults className="landing-f1-qualifying" />
+          </div>
+        </div>
+
+
+
         {/* Content container */}
         <div 
           className="landing-content"
@@ -118,7 +248,10 @@ const LandingView: React.FC = () => {
             position: 'relative',
             zIndex: 2,
             textAlign: 'center',
-            marginBottom: 'var(--spacing-2xl)'
+            marginBottom: 'var(--spacing-lg)',
+            maxWidth: 'min(90vw, 720px)',
+            width: '100%',
+            margin: '0 auto var(--spacing-lg) auto'
           }}
         >
           {/* App branding */}
@@ -128,11 +261,12 @@ const LandingView: React.FC = () => {
                 fontSize: '1.25rem',
                 color: 'var(--text-secondary)',
                 marginBottom: 'var(--spacing-xl)',
-                maxWidth: '600px'
+                maxWidth: 'min(90vw, 720px)',
+                margin: '0 auto var(--spacing-xl) auto'
               }}
             >
               The ultimate Web3 sports betting experience. 
-              Dare to predict. Dare to win. Dare to be legendary.
+              Dare to predict. Dare to win. <span style={{ color: '#FFD700' }}>Dare to be legendary.</span>
             </p>
           </div>
 
@@ -222,9 +356,31 @@ const LandingView: React.FC = () => {
             }}
           >
             <p style={{ margin: 0 }}>
-              Powered by Core Blockchain TestNet2
+              v1.01 Core Blockchain TestNet2
             </p>
           </div>
+        </div>
+
+        {/* F1 Qualifying Results - positioned below bottom text for mobile, above for desktop */}
+        <div className="qualifying-mobile-position" style={{ 
+          display: 'flex', 
+          justifyContent: 'center',
+          margin: 'var(--spacing-lg) auto 0 auto',
+          maxWidth: 'min(90vw, 720px)',
+          width: '100%'
+        }}>
+          <F1QualifyingResults className="landing-f1-qualifying" />
+        </div>
+
+        {/* F1 Media Player - positioned below bottom text */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center',
+          margin: 'var(--spacing-xl) auto 0 auto',
+          maxWidth: 'min(90vw, 720px)',
+          width: '100%'
+        }}>
+          <F1MediaPlayer className="landing-f1-media" videoId="in03rYd74NU" />
         </div>
       </div>
 

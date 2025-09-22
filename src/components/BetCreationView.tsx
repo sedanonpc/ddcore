@@ -170,40 +170,73 @@ const BetCreationView: React.FC<BetCreationViewProps> = ({ match, onClose, onBet
         className="modal"
         style={{
           width: '90vw',
-          maxWidth: '600px',
+          maxWidth: 'min(90vw, 720px)',
           maxHeight: '90vh',
-          overflow: 'auto'
+          overflow: 'auto',
+          background: 'transparent',
+          border: 'none',
+          borderRadius: '4px'
         }}
       >
-        {/* Modal Header */}
-        <div 
-          className="modal-header"
-          style={{
+        {/* Modal Header Banner Card */}
+        <div className="modal-header-banner-card" style={{
+          maxWidth: '100%',
+          width: '100%',
+          marginBottom: 'var(--spacing-lg)'
+        }}>
+          {/* Red Header Bar */}
+          <div style={{
+            background: '#DB0004',
+            padding: '12px 16px',
+            borderTopLeftRadius: '4px',
+            borderTopRightRadius: '4px',
             display: 'flex',
-            justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: 'var(--spacing-lg)',
-            paddingBottom: 'var(--spacing-md)',
-            borderBottom: '1px solid var(--border-primary)'
-          }}
-        >
-          <h2 style={{ margin: 0, color: 'var(--text-accent)' }}>
-            Create Bet
-          </h2>
-          <button
-            onClick={handleClose}
-            disabled={isCreating}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--text-muted)',
-              fontSize: '1.5rem',
-              cursor: isCreating ? 'not-allowed' : 'pointer',
-              padding: 'var(--spacing-xs)'
-            }}
-          >
-            ✕
-          </button>
+            justifyContent: 'space-between'
+          }}>
+            <span style={{
+              color: '#ffffff',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}>
+              CREATE BET
+            </span>
+            <button
+              onClick={handleClose}
+              disabled={isCreating}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#ffffff',
+                fontSize: '1.2rem',
+                cursor: isCreating ? 'not-allowed' : 'pointer',
+                padding: '4px'
+              }}
+            >
+              ✕
+            </button>
+          </div>
+          
+          {/* Black Content Area */}
+          <div style={{
+            background: '#000000',
+            border: '1px solid #DB0004',
+            borderTop: 'none',
+            borderBottomLeftRadius: '4px',
+            borderBottomRightRadius: '4px',
+            padding: '16px'
+          }}>
+            <p style={{ 
+              color: 'var(--text-secondary)', 
+              fontSize: '0.875rem',
+              margin: 0,
+              textAlign: 'center'
+            }}>
+              Set up your bet details and challenge other players
+            </p>
+          </div>
         </div>
 
         {/* Error Message */}

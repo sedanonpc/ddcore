@@ -56,183 +56,200 @@ const MatchListItemView: React.FC<MatchListItemViewProps> = ({ match, onSelect }
 
   return (
     <div 
-      className="match-item card"
+      className="match-item-banner-card"
       style={{
+        maxWidth: 'min(90vw, 720px)',
+        width: '100%',
         cursor: isBettingAvailable ? 'pointer' : 'default',
         opacity: isBettingAvailable ? 1 : 0.7,
         position: 'relative'
       }}
       onClick={isBettingAvailable ? onSelect : undefined}
     >
-      {/* Match Status Badge */}
-      <div 
-        className="match-status"
-        style={{
-          position: 'absolute',
-          top: 'var(--spacing-md)',
-          right: 'var(--spacing-md)',
-          background: getStatusColor(),
-          color: matchStatus === 'completed' ? 'var(--bg-primary)' : 'var(--text-primary)',
-          padding: 'var(--spacing-xs) var(--spacing-sm)',
-          borderRadius: 'var(--radius-sm)',
-          fontSize: '0.75rem',
-          fontWeight: '600',
-          zIndex: 2
-        }}
-      >
-        {getStatusText()}
-      </div>
-
-      {/* League Info */}
-      {league && (
-        <div 
-          className="league-info mb-md"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--spacing-sm)'
-          }}
-        >
-          <img
-            src={league.imageURL}
-            alt={league.name}
-            style={{
-              width: '24px',
-              height: '24px',
-              borderRadius: 'var(--radius-sm)'
-            }}
-          />
-          <span 
-            style={{
-              color: 'var(--text-accent)',
-              fontSize: '0.875rem',
-              fontWeight: '600'
-            }}
-          >
-            {league.name}
-          </span>
-        </div>
-      )}
-
-      {/* Match Title */}
-      <h3 className="match-title mb-sm">
-        {match.title}
-      </h3>
-
-      {/* Match Subtitle */}
-      <p 
-        className="match-subtitle mb-md"
-        style={{
-          color: 'var(--text-secondary)',
-          fontSize: '1rem'
-        }}
-      >
-        {match.subtitle}
-      </p>
-
-      {/* Competitors */}
-      <div 
-        className="competitors mb-md"
-        style={{
+      {/* Red Header Bar */}
+      <div style={{
+        background: '#DB0004',
+        padding: '12px 16px',
+        borderTopLeftRadius: '4px',
+        borderTopRightRadius: '4px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }}>
+        <div style={{
           display: 'flex',
-          flexWrap: 'wrap',
+          alignItems: 'center',
           gap: 'var(--spacing-sm)'
-        }}
-      >
-        {competitorList.map((competitor, index) => (
-          <div
-            key={competitor.id}
-            className="competitor"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--spacing-xs)',
-              background: 'var(--bg-tertiary)',
-              padding: 'var(--spacing-xs) var(--spacing-sm)',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border-primary)'
-            }}
-          >
+        }}>
+          {league && (
             <img
-              src={competitor.imageURL}
-              alt={competitor.name}
+              src={league.imageURL}
+              alt={league.name}
               style={{
                 width: '20px',
                 height: '20px',
                 borderRadius: 'var(--radius-sm)'
               }}
             />
-            <span 
+          )}
+          <span style={{
+            color: '#ffffff',
+            fontSize: '0.875rem',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px'
+          }}>
+            {league?.name || 'MATCH'}
+          </span>
+        </div>
+        
+        <div 
+          style={{
+            background: getStatusColor(),
+            color: matchStatus === 'completed' ? 'var(--bg-primary)' : 'var(--text-primary)',
+            padding: '4px 8px',
+            borderRadius: '2px',
+            fontSize: '0.75rem',
+            fontWeight: '600'
+          }}
+        >
+          {getStatusText()}
+        </div>
+      </div>
+
+      {/* Black Content Area */}
+      <div style={{
+        background: '#000000',
+        border: '1px solid #DB0004',
+        borderTop: 'none',
+        borderBottomLeftRadius: '4px',
+        borderBottomRightRadius: '4px',
+        padding: '16px'
+      }}>
+        {/* Match Title */}
+        <h3 className="match-title mb-sm" style={{
+          color: 'var(--text-primary)',
+          margin: '0 0 var(--spacing-sm) 0'
+        }}>
+          {match.title}
+        </h3>
+
+        {/* Match Subtitle */}
+        <p 
+          className="match-subtitle mb-md"
+          style={{
+            color: 'var(--text-secondary)',
+            fontSize: '1rem',
+            margin: '0 0 var(--spacing-md) 0'
+          }}
+        >
+          {match.subtitle}
+        </p>
+
+        {/* Competitors */}
+        <div 
+          className="competitors mb-md"
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 'var(--spacing-sm)'
+          }}
+        >
+          {competitorList.map((competitor, index) => (
+            <div
+              key={competitor.id}
+              className="competitor"
               style={{
-                fontSize: '0.875rem',
-                fontWeight: '500',
-                color: 'var(--text-primary)'
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--spacing-xs)',
+                background: 'var(--bg-tertiary)',
+                padding: 'var(--spacing-xs) var(--spacing-sm)',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--border-primary)'
               }}
             >
-              {competitor.abbreviation}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* Match Details */}
-      <div 
-        className="match-details mb-md"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--spacing-xs)',
-          fontSize: '0.875rem',
-          color: 'var(--text-muted)'
-        }}
-      >
-        {/* Venue */}
-        <div className="venue">
-          <span style={{ fontWeight: '500' }}>Venue: </span>
-          {match.location.title}
+              <img
+                src={competitor.imageURL}
+                alt={competitor.name}
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: 'var(--radius-sm)'
+                }}
+              />
+              <span 
+                style={{
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: 'var(--text-primary)'
+                }}
+              >
+                {competitor.abbreviation}
+              </span>
+            </div>
+          ))}
         </div>
 
-        {/* Schedule */}
-        <div className="schedule">
-          <span style={{ fontWeight: '500' }}>Date: </span>
-          {formattedDate}
+        {/* Match Details */}
+        <div 
+          className="match-details mb-md"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'var(--spacing-xs)',
+            fontSize: '0.875rem',
+            color: 'var(--text-muted)'
+          }}
+        >
+          {/* Venue */}
+          <div className="venue">
+            <span style={{ fontWeight: '500' }}>Venue: </span>
+            {match.location.title}
+          </div>
+
+          {/* Schedule */}
+          <div className="schedule">
+            <span style={{ fontWeight: '500' }}>Date: </span>
+            {formattedDate}
+          </div>
+
+          {/* Conference (if applicable) */}
+          {match.conference && (
+            <div className="conference">
+              <span style={{ fontWeight: '500' }}>Conference: </span>
+              {match.conference}
+            </div>
+          )}
         </div>
 
-        {/* Conference (if applicable) */}
-        {match.conference && (
-          <div className="conference">
-            <span style={{ fontWeight: '500' }}>Conference: </span>
-            {match.conference}
-          </div>
-        )}
+        {/* Action Button */}
+        <div className="match-actions">
+          {isBettingAvailable ? (
+            <button
+              className="btn btn-primary w-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelect();
+              }}
+            >
+              Create Bet
+            </button>
+          ) : (
+            <div 
+              style={{
+                textAlign: 'center',
+                padding: 'var(--spacing-sm)',
+                color: 'var(--text-muted)',
+                fontSize: '0.875rem'
+              }}
+            >
+              {matchStatus === 'live' ? 'Match in progress' : 'Betting closed'}
+            </div>
+          )}
+        </div>
       </div>
-
-      {/* Action Button */}
-      <div className="match-actions">
-        {isBettingAvailable ? (
-          <button
-            className="btn btn-primary w-full"
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelect();
-            }}
-          >
-            Create Bet
-          </button>
-        ) : (
-          <div 
-            style={{
-              textAlign: 'center',
-              padding: 'var(--spacing-sm)',
-              color: 'var(--text-muted)',
-              fontSize: '0.875rem'
-            }}
-          >
-            {matchStatus === 'live' ? 'Match in progress' : 'Betting closed'}
-          </div>
-        )}
-      </div>
-
+      
       {/* Special styling for F1 matches */}
       {match.leagueID === 'f1' && (
         <div 

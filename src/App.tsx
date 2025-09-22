@@ -34,8 +34,12 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
  */
 function App() {
   return (
-    <Router>
-      <div className="App">
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <div className="App" style={{
+        minHeight: '100vh',
+        background: 'var(--bg-primary)',
+        color: 'var(--text-primary)'
+      }}>
         {/* Navigation - Hidden on landing page */}
         <NavigationView />
         

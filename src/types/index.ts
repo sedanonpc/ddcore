@@ -101,6 +101,28 @@ export interface UsernameWords {
   nouns: string[];
 }
 
+
+// FastF1 Qualifying Results types
+export interface QualifyingResult {
+  position: number;
+  driver: string;
+  team: string;
+  lapTime: string;
+  timeDelta: string;
+  teamColor: string;
+}
+
+export interface QualifyingData {
+  event: string;
+  session: string;
+  results: QualifyingResult[];
+  polePosition: {
+    driver: string;
+    time: string;
+  };
+  totalDrivers: number;
+}
+
 // Ethereum/Web3 types
 export interface EthereumProvider {
   request: (args: { method: string; params?: any[] }) => Promise<any>;

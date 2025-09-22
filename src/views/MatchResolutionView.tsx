@@ -4,6 +4,7 @@ import { DatabaseBet, Match, Competitor } from '../types';
 import { blockchainService } from '../services/blockchain';
 import { supabaseService } from '../services/supabase';
 import { matchDataService } from '../utils/matchData';
+import { Squares } from '../components/Squares';
 import '../styles/cyberpunk.css';
 
 /**
@@ -390,41 +391,128 @@ const MatchResolutionView: React.FC = () => {
     <div 
       className="match-resolution-container"
       style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: 'var(--spacing-xl) var(--spacing-lg)'
+        minHeight: '100vh',
+        background: 'var(--bg-primary)',
+        position: 'relative',
+        overflow: 'hidden'
       }}
     >
-      {/* Header */}
-      <div className="resolution-header mb-lg">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--spacing-md)' }}>
-          <div>
-            <h1 className="text-glow mb-md">Match Resolution</h1>
+      {/* Animated background using Squares component */}
+      <div 
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 0
+        }}
+      >
+        <Squares direction="diagonal" speed={0.5} borderColor="#7f1d1d" squareSize={48} hoverFillColor="#2a0a0a" className="w-full h-full" />
+      </div>
+      {/* Dark overlay for better text readability */}
+      <div 
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'linear-gradient(to bottom, rgba(10, 10, 15, 0.3), rgba(10, 10, 15, 0.8))',
+          zIndex: 1
+        }}
+      />
+      
+      {/* Content container */}
+      <div style={{
+        position: 'relative',
+        zIndex: 2,
+        maxWidth: 'min(90vw, 720px)',
+        margin: '0 auto',
+        padding: 'var(--spacing-xl) var(--spacing-lg)'
+      }}>
+        {/* Header Banner Card */}
+        <div className="header-banner-card" style={{
+          maxWidth: 'min(90vw, 720px)',
+          width: '100%',
+          margin: '0 auto var(--spacing-lg) auto'
+        }}>
+          {/* Red Header Bar */}
+          <div style={{
+            background: '#DB0004',
+            padding: '12px 16px',
+            borderTopLeftRadius: '4px',
+            borderTopRightRadius: '4px'
+          }}>
+            <span style={{
+              color: '#ffffff',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}>
+              MATCH RESOLUTION
+            </span>
+          </div>
+          
+          {/* Black Content Area */}
+          <div style={{
+            background: '#000000',
+            border: '1px solid #DB0004',
+            borderTop: 'none',
+            borderBottomLeftRadius: '4px',
+            borderBottomRightRadius: '4px',
+            padding: '16px'
+          }}>
             <p style={{ 
               color: 'var(--text-secondary)', 
-              fontSize: '1.125rem',
-              marginBottom: 'var(--spacing-lg)'
+              fontSize: '0.875rem',
+              margin: 0,
+              textAlign: 'center'
             }}>
               Select a match to resolve and set the final results to distribute bet winnings.
             </p>
           </div>
+        </div>
+        
+        {/* Wallet Status Banner Card */}
+        <div className="wallet-status-banner-card" style={{
+          maxWidth: 'min(90vw, 720px)',
+          width: '100%',
+          margin: '0 auto var(--spacing-lg) auto'
+        }}>
+          {/* Status Header Bar */}
+          <div style={{
+            background: isWalletConnected ? '#10b981' : '#DB0004',
+            padding: '12px 16px',
+            borderTopLeftRadius: '4px',
+            borderTopRightRadius: '4px'
+          }}>
+            <span style={{
+              color: '#ffffff',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}>
+              {isWalletConnected ? '✅ WALLET CONNECTED' : '❌ WALLET DISCONNECTED'}
+            </span>
+          </div>
           
-          {/* Wallet Connection Status */}
-          <div 
-            className="wallet-status"
-            style={{
-              padding: 'var(--spacing-md)',
-              background: isWalletConnected ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-              border: `1px solid ${isWalletConnected ? 'var(--accent-green)' : 'var(--accent-red)'}`,
-              borderRadius: 'var(--radius-md)',
-              color: isWalletConnected ? 'var(--accent-green)' : 'var(--accent-red)',
-              fontSize: '0.875rem'
-            }}
-          >
-            <div style={{ fontWeight: '600', marginBottom: 'var(--spacing-xs)' }}>
-              {isWalletConnected ? '✅ Wallet Connected' : '❌ Wallet Disconnected'}
-            </div>
-            <div style={{ fontSize: '0.75rem', opacity: 0.8, marginBottom: !isWalletConnected ? 'var(--spacing-sm)' : 0 }}>
+          {/* Black Content Area */}
+          <div style={{
+            background: '#000000',
+            border: `1px solid ${isWalletConnected ? '#10b981' : '#DB0004'}`,
+            borderTop: 'none',
+            borderBottomLeftRadius: '4px',
+            borderBottomRightRadius: '4px',
+            padding: '16px'
+          }}>
+            <div style={{
+              color: 'var(--text-secondary)',
+              fontSize: '0.875rem',
+              marginBottom: !isWalletConnected && currentUser ? 'var(--spacing-sm)' : 0
+            }}>
               {currentUser ? `User: ${currentUser.username}` : 'No user authenticated'}
             </div>
             {!isWalletConnected && currentUser && (
@@ -447,10 +535,8 @@ const MatchResolutionView: React.FC = () => {
                     window.dispatchEvent(new Event('walletReconnected'));
                   }
                 }}
-                className="btn btn-small"
+                className="btn btn-primary"
                 style={{
-                  background: 'var(--accent-orange)',
-                  color: 'var(--text-primary)',
                   fontSize: '0.75rem',
                   padding: 'var(--spacing-xs) var(--spacing-sm)'
                 }}
@@ -461,23 +547,50 @@ const MatchResolutionView: React.FC = () => {
           </div>
         </div>
         
-        {/* Admin warning */}
-        <div 
-          className="admin-warning mb-lg"
-          style={{
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid var(--accent-red)',
-            borderRadius: 'var(--radius-md)',
-            padding: 'var(--spacing-md)',
-            color: 'var(--accent-red)'
-          }}
-        >
-          <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: '500' }}>
-            ⚠️ Admin Only: This action will resolve bets and distribute funds on the blockchain. 
-            Ensure match results are final before proceeding.
-          </p>
+        {/* Admin Warning Banner Card */}
+        <div className="admin-warning-banner-card" style={{
+          maxWidth: 'min(90vw, 720px)',
+          width: '100%',
+          margin: '0 auto var(--spacing-lg) auto'
+        }}>
+          {/* Red Header Bar */}
+          <div style={{
+            background: '#DB0004',
+            padding: '12px 16px',
+            borderTopLeftRadius: '4px',
+            borderTopRightRadius: '4px'
+          }}>
+            <span style={{
+              color: '#ffffff',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}>
+              ⚠️ ADMIN ONLY
+            </span>
+          </div>
+          
+          {/* Black Content Area */}
+          <div style={{
+            background: '#000000',
+            border: '1px solid #DB0004',
+            borderTop: 'none',
+            borderBottomLeftRadius: '4px',
+            borderBottomRightRadius: '4px',
+            padding: '16px'
+          }}>
+            <p style={{ 
+              color: 'var(--text-secondary)', 
+              fontSize: '0.875rem',
+              margin: 0,
+              textAlign: 'center'
+            }}>
+              This action will resolve bets and distribute funds on the blockchain. 
+              Ensure match results are final before proceeding.
+            </p>
+          </div>
         </div>
-      </div>
 
       {/* Error/Success Messages */}
       {error && (
@@ -512,14 +625,39 @@ const MatchResolutionView: React.FC = () => {
         </div>
       )}
 
-      {/* Match Selection */}
-      <div 
-        className="match-selection card mb-lg"
-        style={{ padding: 'var(--spacing-xl)' }}
-      >
-        <h3 style={{ color: 'var(--text-accent)', marginBottom: 'var(--spacing-lg)' }}>
-          Select Match to Resolve
-        </h3>
+        {/* Match Selection Banner Card */}
+        <div className="match-selection-banner-card" style={{
+          maxWidth: 'min(90vw, 720px)',
+          width: '100%',
+          margin: '0 auto var(--spacing-lg) auto'
+        }}>
+          {/* Red Header Bar */}
+          <div style={{
+            background: '#DB0004',
+            padding: '12px 16px',
+            borderTopLeftRadius: '4px',
+            borderTopRightRadius: '4px'
+          }}>
+            <span style={{
+              color: '#ffffff',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}>
+              SELECT MATCH TO RESOLVE
+            </span>
+          </div>
+          
+          {/* Black Content Area */}
+          <div style={{
+            background: '#000000',
+            border: '1px solid #DB0004',
+            borderTop: 'none',
+            borderBottomLeftRadius: '4px',
+            borderBottomRightRadius: '4px',
+            padding: 'var(--spacing-xl)'
+          }}>
 
         <div className="form-group mb-lg">
           <label className="form-label">Available Matches</label>
@@ -552,67 +690,74 @@ const MatchResolutionView: React.FC = () => {
           </div>
         )}
 
-        {/* Match details when selected */}
-        {selectedMatch && !isLoadingBets && (
-          <div 
-            className="selected-match-details"
-            style={{
-              background: 'var(--bg-tertiary)',
-              border: '1px solid var(--border-primary)',
-              borderRadius: 'var(--radius-md)',
-              padding: 'var(--spacing-lg)'
-            }}
-          >
-            <h4 style={{ color: 'var(--text-accent)', marginBottom: 'var(--spacing-md)' }}>
-              {selectedMatch.title}
-            </h4>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--spacing-sm)' }}>
-              {selectedMatch.subtitle}
-            </p>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-              <strong>Type:</strong> {isF1Match ? 'F1 Race (Ranking-based)' : '1v1 Match (Winner-based)'}
-              <br />
-              <strong>Accepted Bets:</strong> {acceptedBets.length} bet{acceptedBets.length !== 1 ? 's' : ''}
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Resolution Form */}
-      {selectedMatch && acceptedBets.length > 0 && !isLoadingBets && (
-        <div 
-          className="resolution-form card"
-          style={{ padding: 'var(--spacing-xl)' }}
-        >
-          {isF1Match ? (
-            // F1 Resolution Form
-            <>
+            {/* Match details when selected */}
+            {selectedMatch && !isLoadingBets && (
               <div 
+                className="selected-match-details"
                 style={{
-                  position: 'relative',
-                  marginBottom: 'var(--spacing-lg)'
+                  background: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-primary)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: 'var(--spacing-lg)',
+                  marginTop: 'var(--spacing-lg)'
                 }}
               >
-                {/* F1 Racing Stripe */}
-                <div 
-                  style={{
-                    position: 'absolute',
-                    top: '-var(--spacing-xl)',
-                    left: '-var(--spacing-xl)',
-                    right: '-var(--spacing-xl)',
-                    height: '3px',
-                    background: 'linear-gradient(90deg, var(--accent-red), var(--accent-orange), var(--accent-red))',
-                    borderRadius: 'var(--radius-lg) var(--radius-lg) 0 0'
-                  }}
-                />
-                
-                <h3 style={{ color: 'var(--text-accent)', marginBottom: 'var(--spacing-md)' }}>
-                  Set F1 Race Results
-                </h3>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--spacing-lg)' }}>
-                  Assign each racer to their final finishing position in the race.
+                <h4 style={{ color: 'var(--text-accent)', marginBottom: 'var(--spacing-md)' }}>
+                  {selectedMatch.title}
+                </h4>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--spacing-sm)' }}>
+                  {selectedMatch.subtitle}
+                </p>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                  <strong>Type:</strong> {isF1Match ? 'F1 Race (Ranking-based)' : '1v1 Match (Winner-based)'}
+                  <br />
+                  <strong>Accepted Bets:</strong> {acceptedBets.length} bet{acceptedBets.length !== 1 ? 's' : ''}
                 </p>
               </div>
+            )}
+          </div>
+        </div>
+
+        {/* Resolution Form Banner Card */}
+        {selectedMatch && acceptedBets.length > 0 && !isLoadingBets && (
+          <div className="resolution-form-banner-card" style={{
+            maxWidth: 'min(90vw, 720px)',
+            width: '100%',
+            margin: '0 auto'
+          }}>
+            {/* Red Header Bar */}
+            <div style={{
+              background: '#DB0004',
+              padding: '12px 16px',
+              borderTopLeftRadius: '4px',
+              borderTopRightRadius: '4px'
+            }}>
+              <span style={{
+                color: '#ffffff',
+                fontSize: '0.875rem',
+                fontWeight: 'bold',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                {isF1Match ? 'SET F1 RACE RESULTS' : 'SELECT MATCH WINNER'}
+              </span>
+            </div>
+            
+            {/* Black Content Area */}
+            <div style={{
+              background: '#000000',
+              border: '1px solid #DB0004',
+              borderTop: 'none',
+              borderBottomLeftRadius: '4px',
+              borderBottomRightRadius: '4px',
+              padding: 'var(--spacing-xl)'
+            }}>
+            {isF1Match ? (
+              // F1 Resolution Form
+              <>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--spacing-lg)', textAlign: 'center' }}>
+                  Assign each racer to their final finishing position in the race.
+                </p>
 
               {/* F1 Position Assignments */}
               <div 
@@ -654,13 +799,10 @@ const MatchResolutionView: React.FC = () => {
                   });
                 })()}
               </div>
-            </>
-          ) : (
-            // Standard Resolution Form
-            <>
-              <h3 style={{ color: 'var(--text-accent)', marginBottom: 'var(--spacing-lg)' }}>
-                Select Match Winner
-              </h3>
+              </>
+            ) : (
+              // Standard Resolution Form
+              <>
 
               <div 
                 className="winner-selection"
@@ -733,30 +875,33 @@ const MatchResolutionView: React.FC = () => {
                   ));
                 })()}
               </div>
-            </>
-          )}
-
-          {/* Resolve Button */}
-          <button
-            onClick={handleResolveMatch}
-            disabled={!canResolve || (isF1Match ? Object.keys(f1Rankings).length === 0 : !standardWinner)}
-            className="btn btn-primary btn-large w-full glow-strong"
-            style={{
-              opacity: canResolve ? 1 : 0.5,
-              cursor: canResolve ? 'pointer' : 'not-allowed'
-            }}
-          >
-            {isResolving ? (
-              <>
-                <span className="loading-spinner" style={{ marginRight: 'var(--spacing-sm)' }} />
-                Resolving {acceptedBets.length} Bet{acceptedBets.length !== 1 ? 's' : ''}...
               </>
-            ) : (
-              `Resolve Match (${acceptedBets.length} bet${acceptedBets.length !== 1 ? 's' : ''})`
             )}
-          </button>
-        </div>
-      )}
+
+            {/* Resolve Button */}
+            <button
+              onClick={handleResolveMatch}
+              disabled={!canResolve || (isF1Match ? Object.keys(f1Rankings).length === 0 : !standardWinner)}
+              className="btn btn-primary btn-large w-full glow-strong"
+              style={{
+                opacity: canResolve ? 1 : 0.5,
+                cursor: canResolve ? 'pointer' : 'not-allowed',
+                marginTop: 'var(--spacing-lg)'
+              }}
+            >
+              {isResolving ? (
+                <>
+                  <span className="loading-spinner" style={{ marginRight: 'var(--spacing-sm)' }} />
+                  Resolving {acceptedBets.length} Bet{acceptedBets.length !== 1 ? 's' : ''}...
+                </>
+              ) : (
+                `Resolve Match (${acceptedBets.length} bet${acceptedBets.length !== 1 ? 's' : ''})`
+              )}
+            </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

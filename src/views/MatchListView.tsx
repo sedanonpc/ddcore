@@ -5,6 +5,8 @@ import { blockchainService } from '../services/blockchain';
 import { Match, League, Competitor } from '../types';
 import MatchListItemView from '../components/MatchListItemView';
 import BetCreationView from '../components/BetCreationView';
+import { Squares } from '../components/Squares';
+import { ReactComponent as HellracerBanner } from '../assets/images/hellracer banner 2.svg';
 import '../styles/cyberpunk.css';
 
 /**
@@ -122,33 +124,149 @@ const MatchListView: React.FC = () => {
     <div 
       className="match-list-container"
       style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: 'var(--spacing-xl) var(--spacing-lg)'
+        minHeight: '100vh',
+        background: 'var(--bg-primary)',
+        position: 'relative',
+        overflow: 'hidden'
       }}
     >
-      {/* Header */}
-      <div className="match-list-header mb-lg">
-        <h1 className="text-glow">Available Matches</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.125rem' }}>
-          Choose a match and dare to make your prediction
-        </p>
-      </div>
-
-      {/* Filters */}
+      {/* Animated background using Squares component */}
       <div 
-        className="match-filters mb-lg"
         style={{
-          display: 'flex',
-          gap: 'var(--spacing-md)',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          padding: 'var(--spacing-lg)',
-          background: 'var(--bg-card)',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border-primary)'
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 0
         }}
       >
+        <Squares direction="diagonal" speed={0.5} borderColor="#7f1d1d" squareSize={48} hoverFillColor="#2a0a0a" className="w-full h-full" />
+      </div>
+      {/* Dark overlay for better text readability */}
+      <div 
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'linear-gradient(to bottom, rgba(10, 10, 15, 0.3), rgba(10, 10, 15, 0.8))',
+          zIndex: 1
+        }}
+      />
+      
+      {/* Content container */}
+      <div style={{
+        position: 'relative',
+        zIndex: 2,
+        maxWidth: 'min(90vw, 720px)',
+        margin: '0 auto',
+        padding: 'var(--spacing-xl) var(--spacing-lg)'
+      }}>
+        {/* Hellracer Banner */}
+        <div style={{
+          maxWidth: 'min(90vw, 720px)',
+          width: '100%',
+          margin: 'calc(-0.5 * var(--spacing-xl)) auto var(--spacing-lg) auto',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}>
+          <HellracerBanner
+            style={{
+              width: '100%',
+              maxWidth: '720px',
+              height: 'auto',
+              display: 'block',
+              imageRendering: 'crisp-edges',
+              shapeRendering: 'crispEdges',
+              textRendering: 'geometricPrecision'
+            }}
+          />
+        </div>
+
+        {/* Header Banner Card */}
+        <div className="header-banner-card" style={{
+          maxWidth: 'min(90vw, 720px)',
+          width: '100%',
+          margin: '0 auto var(--spacing-lg) auto'
+        }}>
+          {/* Red Header Bar */}
+          <div style={{
+            background: '#DB0004',
+            padding: '12px 16px',
+            borderTopLeftRadius: '4px',
+            borderTopRightRadius: '4px'
+          }}>
+            <span style={{
+              color: '#ffffff',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}>
+              AVAILABLE MATCHES
+            </span>
+          </div>
+          
+          {/* Black Content Area */}
+          <div style={{
+            background: '#000000',
+            border: '1px solid #DB0004',
+            borderTop: 'none',
+            borderBottomLeftRadius: '4px',
+            borderBottomRightRadius: '4px',
+            padding: '16px'
+          }}>
+            <p style={{ 
+              color: 'var(--text-secondary)', 
+              fontSize: '0.875rem',
+              margin: 0,
+              textAlign: 'center'
+            }}>
+              Choose a match and dare to make your prediction
+            </p>
+          </div>
+        </div>
+
+        {/* Filters Banner Card */}
+        <div className="filters-banner-card" style={{
+          maxWidth: 'min(90vw, 720px)',
+          width: '100%',
+          margin: '0 auto var(--spacing-lg) auto'
+        }}>
+          {/* Red Header Bar */}
+          <div style={{
+            background: '#DB0004',
+            padding: '12px 16px',
+            borderTopLeftRadius: '4px',
+            borderTopRightRadius: '4px'
+          }}>
+            <span style={{
+              color: '#ffffff',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}>
+              FILTERS
+            </span>
+          </div>
+          
+          {/* Black Content Area */}
+          <div style={{
+            background: '#000000',
+            border: '1px solid #DB0004',
+            borderTop: 'none',
+            borderBottomLeftRadius: '4px',
+            borderBottomRightRadius: '4px',
+            padding: 'var(--spacing-lg)',
+            display: 'flex',
+            gap: 'var(--spacing-md)',
+            flexWrap: 'wrap',
+            alignItems: 'center'
+          }}>
         {/* Search Input */}
         <div className="search-container" style={{ flex: '1', minWidth: '250px' }}>
           <input
@@ -178,81 +296,105 @@ const MatchListView: React.FC = () => {
           </select>
         </div>
 
-        {/* Results Count */}
-        <div 
-          className="results-count"
-          style={{
-            color: 'var(--text-muted)',
-            fontSize: '0.875rem',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          {filteredMatches.length} match{filteredMatches.length !== 1 ? 'es' : ''} found
-        </div>
-      </div>
-
-      {/* Match List */}
-      {filteredMatches.length > 0 ? (
-        <div 
-          className="match-grid"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))',
-            gap: 'var(--spacing-lg)'
-          }}
-        >
-          {filteredMatches.map(match => (
-            <MatchListItemView
-              key={match.id}
-              match={match}
-              onSelect={() => handleMatchSelect(match)}
-            />
-          ))}
-        </div>
-      ) : (
-        <div 
-          className="no-matches"
-          style={{
-            textAlign: 'center',
-            padding: 'var(--spacing-2xl)',
-            background: 'var(--bg-card)',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-primary)'
-          }}
-        >
-          <h3 style={{ color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
-            No matches found
-          </h3>
-          <p style={{ color: 'var(--text-muted)' }}>
-            {searchQuery || selectedLeague !== 'all' 
-              ? 'Try adjusting your search criteria or filters'
-              : 'No matches are currently available for betting'
-            }
-          </p>
-          {(searchQuery || selectedLeague !== 'all') && (
-            <button
-              onClick={() => {
-                setSearchQuery('');
-                setSelectedLeague('all');
+            {/* Results Count */}
+            <div 
+              className="results-count"
+              style={{
+                color: 'var(--text-muted)',
+                fontSize: '0.875rem',
+                whiteSpace: 'nowrap'
               }}
-              className="btn btn-secondary mt-md"
             >
-              Clear Filters
-            </button>
-          )}
+              {filteredMatches.length} match{filteredMatches.length !== 1 ? 'es' : ''} found
+            </div>
+          </div>
         </div>
-      )}
 
-      {/* Bet Creation Modal */}
-      {selectedMatch && (
-        <BetCreationView
-          match={selectedMatch}
-          onClose={closeBetCreation}
-          onBetCreated={handleBetCreated}
-        />
-      )}
+        {/* Match List */}
+        {filteredMatches.length > 0 ? (
+          <div 
+            className="match-grid"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--spacing-lg)'
+            }}
+          >
+            {filteredMatches.map(match => (
+              <MatchListItemView
+                key={match.id}
+                match={match}
+                onSelect={() => handleMatchSelect(match)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="no-matches-banner-card" style={{
+            maxWidth: 'min(90vw, 720px)',
+            width: '100%',
+            margin: '0 auto'
+          }}>
+            {/* Red Header Bar */}
+            <div style={{
+              background: '#DB0004',
+              padding: '12px 16px',
+              borderTopLeftRadius: '4px',
+              borderTopRightRadius: '4px'
+            }}>
+              <span style={{
+                color: '#ffffff',
+                fontSize: '0.875rem',
+                fontWeight: 'bold',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                NO MATCHES FOUND
+              </span>
+            </div>
+            
+            {/* Black Content Area */}
+            <div style={{
+              background: '#000000',
+              border: '1px solid #DB0004',
+              borderTop: 'none',
+              borderBottomLeftRadius: '4px',
+              borderBottomRightRadius: '4px',
+              padding: 'var(--spacing-2xl)',
+              textAlign: 'center'
+            }}>
+              <h3 style={{ color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
+                No matches found
+              </h3>
+              <p style={{ color: 'var(--text-muted)' }}>
+                {searchQuery || selectedLeague !== 'all' 
+                  ? 'Try adjusting your search criteria or filters'
+                  : 'No matches are currently available for betting'
+                }
+              </p>
+              {(searchQuery || selectedLeague !== 'all') && (
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSelectedLeague('all');
+                  }}
+                  className="btn btn-secondary mt-md"
+                >
+                  Clear Filters
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
-      {/* Mobile styles are handled in the cyberpunk.css file */}
+        {/* Bet Creation Modal */}
+        {selectedMatch && (
+          <BetCreationView
+            match={selectedMatch}
+            onClose={closeBetCreation}
+            onBetCreated={handleBetCreated}
+          />
+        )}
+      </div>
     </div>
   );
 };
