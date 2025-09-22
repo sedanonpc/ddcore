@@ -256,7 +256,7 @@ const F1MediaPlayer: React.FC<F1MediaPlayerProps> = ({
       }}>
         <span>F1 MEDIA</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '12px' }}>▶️ LIVE</span>
+          <span style={{ fontSize: '12px' }}>†</span>
         </div>
       </div>
 

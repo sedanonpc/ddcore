@@ -33,8 +33,8 @@ interface F1QualifyingResultsProps {
  */
 const F1QualifyingResults: React.FC<F1QualifyingResultsProps> = ({ 
   className = '', 
-  year = 2024, 
-  event = 'Las Vegas' 
+  year = 2025, 
+  event = 'Azerbaijan' 
 }) => {
   const [qualifyingData, setQualifyingData] = useState<QualifyingData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,12 +50,25 @@ const F1QualifyingResults: React.FC<F1QualifyingResultsProps> = ({
       setLoading(true);
       setError(null);
       
+      const url = `http://localhost:8000/api/f1/qualifying?year=${year}&event=${encodeURIComponent(event)}`;
       console.log(`🏎️ Fetching qualifying results for ${year} ${event}...`);
+      console.log(`🏎️ URL: ${url}`);
       
-      const response = await fetch(`http://localhost:8000/api/f1/qualifying?year=${year}&event=${encodeURIComponent(event)}`);
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        mode: 'cors',
+      });
+      
+      console.log(`🏎️ Response status: ${response.status} ${response.statusText}`);
+      console.log(`🏎️ Response headers:`, Object.fromEntries(response.headers.entries()));
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+        console.error('🏎️ Error response data:', errorData);
         throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
       }
       
@@ -64,6 +77,9 @@ const F1QualifyingResults: React.FC<F1QualifyingResultsProps> = ({
       setQualifyingData(data);
     } catch (err: any) {
       console.error('🏎️ Error fetching qualifying results:', err);
+      console.error('🏎️ Error type:', typeof err);
+      console.error('🏎️ Error message:', err.message);
+      console.error('🏎️ Error stack:', err.stack);
       setError(err.message);
     } finally {
       setLoading(false);

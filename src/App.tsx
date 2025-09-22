@@ -10,6 +10,7 @@ import MatchResolutionView from './views/MatchResolutionView';
 
 // Import Components
 import NavigationView from './components/NavigationView';
+import AIChatFloatingButton from './components/AIChatFloatingButton';
 
 // Import Styles
 import './styles/cyberpunk.css';
@@ -90,6 +91,9 @@ function App() {
             />
           </Routes>
         </main>
+
+        {/* Global AI Chat Assistant - Available on all authenticated pages */}
+        {blockchainService.getCurrentUser() && <AIChatFloatingButton />}
       </div>
     </Router>
   );

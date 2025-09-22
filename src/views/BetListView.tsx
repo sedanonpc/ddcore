@@ -494,6 +494,7 @@ const BetListView: React.FC = () => {
           />
         )}
       </div>
+
     </div>
   );
 };

@@ -511,20 +511,20 @@ svg {
 
 /* Qualifying banner positioning - responsive */
 .qualifying-desktop-position {
-  display: block;
+  display: block !important;
 }
 
 .qualifying-mobile-position {
-  display: none;
+  display: none !important;
 }
 
 @media (max-width: 768px) {
   .qualifying-desktop-position {
-    display: none;
+    display: none !important;
   }
   
   .qualifying-mobile-position {
-    display: flex;
+    display: flex !important;
   }
 }
 
@@ -811,6 +811,107 @@ svg {
 
 /* Import BEBAS font */
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+/* AI Chat Assistant Styles */
+.ai-chat-floating-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  pointer-events: auto;
+}
+
+.ai-chat-floating-container * {
+  pointer-events: auto;
+}
+
+/* AI Chat Panel Styles */
+.ai-chat-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-glow);
+  transition: all var(--transition-normal);
+}
+
+.ai-chat-panel:hover {
+  box-shadow: var(--shadow-glow-strong);
+  transform: translateY(-2px);
+}
+
+/* AI Chat Button Styles */
+.ai-chat-button {
+  background: var(--gradient-primary);
+  color: var(--text-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-family: var(--font-primary);
+  font-size: 0.875rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-glow);
+}
+
+.ai-chat-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow-strong);
+}
+
+.ai-chat-button:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-glow);
+}
+
+/* AI Chat Form Styles */
+.ai-chat-form {
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-normal);
+}
+
+.ai-chat-form:focus-within {
+  border-color: var(--border-accent);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.ai-chat-textarea {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: var(--font-primary);
+  font-size: 0.875rem;
+  resize: none;
+  outline: none;
+}
+
+.ai-chat-textarea::placeholder {
+  color: var(--text-muted);
+  font-family: var(--font-primary);
+  font-size: 0.875rem;
+}
+
+/* AI Chat Orb Styles */
+.ai-chat-orb {
+  filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.3));
+}
+
+/* Responsive AI Chat */
+@media (max-width: 768px) {
+  .ai-chat-floating-container {
+    bottom: 15px;
+    right: 15px;
+  }
+  
+  .ai-chat-button {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.75rem;
+  }
+}
 
 /* Upcoming Matches Card Styles */
 .upcoming-matches-card {
