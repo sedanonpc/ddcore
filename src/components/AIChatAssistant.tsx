@@ -20,6 +20,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
   const dragRef = React.useRef<HTMLDivElement>(null)
   const longPressTimerRef = React.useRef<NodeJS.Timeout | null>(null)
   const isDraggingRef = React.useRef(false)
+  const wasDraggingRef = React.useRef(false)
   const dragStartRef = React.useRef<Position>({ x: 0, y: 0 })
   const initialPositionRef = React.useRef<Position>({ x: 0, y: 0 })
 
@@ -34,7 +35,6 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
     }
   })
   const [isDragging, setIsDragging] = React.useState(false)
-  const [isLongPressing, setIsLongPressing] = React.useState(false)
   const [windowSize, setWindowSize] = React.useState({ width: window.innerWidth, height: window.innerHeight })
 
   // Calculate responsive dimensions
@@ -66,14 +66,6 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
     textareaRef.current?.blur()
   }, [])
 
-  const triggerOpen = React.useCallback(() => {
-    if (!isDraggingRef.current) {
-      setShowForm(true)
-      setTimeout(() => {
-        textareaRef.current?.focus()
-      })
-    }
-  }, [])
 
   const handleSuccess = React.useCallback(() => {
     triggerClose()
@@ -81,15 +73,26 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
     setTimeout(() => setSuccessFlag(false), 1500)
   }, [triggerClose])
 
-  // Mouse down handler for button only - start long press timer
+  // Simple click handler for button - open chat
+  const handleButtonClick = React.useCallback(() => {
+    // Only open chat if we haven't been dragging
+    if (!showForm && !wasDraggingRef.current) {
+      setShowForm(true)
+      setTimeout(() => {
+        textareaRef.current?.focus()
+      })
+    }
+    // Reset the wasDragging flag after click
+    wasDraggingRef.current = false
+  }, [showForm])
+
+  // Mouse down handler for button - start drag timer
   const handleButtonMouseDown = React.useCallback((e: React.MouseEvent) => {
-    e.preventDefault()
     e.stopPropagation()
     dragStartRef.current = { x: e.clientX, y: e.clientY }
     initialPositionRef.current = { ...position }
     
     longPressTimerRef.current = setTimeout(() => {
-      setIsLongPressing(true)
       setIsDragging(true)
       isDraggingRef.current = true
     }, 500) // 500ms for long press
@@ -117,7 +120,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
     }
   }, [])
 
-  const handleMouseUp = React.useCallback((e?: React.MouseEvent) => {
+  const handleMouseUp = React.useCallback(() => {
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current)
       longPressTimerRef.current = null
@@ -127,25 +130,19 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
       // We were dragging - just stop dragging
       setIsDragging(false)
       isDraggingRef.current = false
+      wasDraggingRef.current = true // Mark that we were dragging
       savePosition(position)
-    } else if (!showForm) {
-      // This was a quick click (not a long press) - open the chat
-      triggerOpen()
     }
-    
-    setIsLongPressing(false)
-  }, [position, savePosition, showForm, triggerOpen])
+  }, [position, savePosition])
 
   // Touch handlers for button only
   const handleButtonTouchStart = React.useCallback((e: React.TouchEvent) => {
-    e.preventDefault()
     e.stopPropagation()
     const touch = e.touches[0]
     dragStartRef.current = { x: touch.clientX, y: touch.clientY }
     initialPositionRef.current = { ...position }
     
     longPressTimerRef.current = setTimeout(() => {
-      setIsLongPressing(true)
       setIsDragging(true)
       isDraggingRef.current = true
     }, 500) // 500ms for long press
@@ -164,7 +161,6 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
 
   const handleTouchMove = React.useCallback((e: TouchEvent) => {
     if (isDraggingRef.current) {
-      e.preventDefault()
       const touch = e.touches[0]
       const deltaX = touch.clientX - dragStartRef.current.x
       const deltaY = touch.clientY - dragStartRef.current.y
@@ -176,7 +172,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
     }
   }, [])
 
-  const handleTouchEnd = React.useCallback((e?: React.TouchEvent) => {
+  const handleTouchEnd = React.useCallback(() => {
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current)
       longPressTimerRef.current = null
@@ -186,21 +182,17 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
       // We were dragging - just stop dragging
       setIsDragging(false)
       isDraggingRef.current = false
+      wasDraggingRef.current = true // Mark that we were dragging
       savePosition(position)
-    } else if (!showForm) {
-      // This was a quick tap (not a long press) - open the chat
-      triggerOpen()
     }
-    
-    setIsLongPressing(false)
-  }, [position, savePosition, showForm, triggerOpen])
+  }, [position, savePosition])
 
   // Global event listeners for drag
   React.useEffect(() => {
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove)
       document.addEventListener('mouseup', () => handleMouseUp())
-      document.addEventListener('touchmove', handleTouchMove, { passive: false })
+      document.addEventListener('touchmove', handleTouchMove)
       document.addEventListener('touchend', () => handleTouchEnd())
     }
 
@@ -275,16 +267,14 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
           flexDirection: 'column',
           alignItems: 'center',
           overflow: 'hidden',
-          cursor: showForm ? 'default' : (isDragging ? 'grabbing' : isLongPressing ? 'grabbing' : 'grab'),
+          cursor: showForm ? 'default' : (isDragging ? 'grabbing' : 'grab'),
           userSelect: 'none',
-          touchAction: 'none', // Prevent default touch behaviors
-          WebkitTapHighlightColor: 'transparent', // Remove tap highlight on mobile
         }}
         initial={false}
         animate={{
           width: showForm ? FORM_WIDTH : BUTTON_SIZE,
           height: showForm ? FORM_HEIGHT : BUTTON_SIZE,
-          scale: isDragging ? 1.15 : isLongPressing ? 1.08 : 1,
+          scale: isDragging ? 1.15 : 1,
         }}
         transition={{
           type: "spring",
@@ -311,12 +301,11 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
               borderRadius: '50%',
               boxShadow: isDragging 
                 ? '0 0 25px rgba(239, 68, 68, 0.9), 0 0 50px rgba(239, 68, 68, 0.5)' 
-                : isLongPressing 
-                  ? '0 0 18px rgba(239, 68, 68, 0.7), 0 0 35px rgba(239, 68, 68, 0.4)'
-                  : '0 0 12px rgba(239, 68, 68, 0.6)',
+                : '0 0 12px rgba(239, 68, 68, 0.6)',
               transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
               position: 'relative',
             }}
+            onClick={handleButtonClick}
             onMouseDown={handleButtonMouseDown}
             onTouchStart={handleButtonTouchStart}
           >
@@ -324,7 +313,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
             <motion.div
               animate={{ 
                 rotate: isDragging ? 360 : 0,
-                scale: isLongPressing ? 1.15 : 1 
+                scale: 1 
               }}
               transition={{ 
                 rotate: { duration: 0.6, ease: "easeInOut" },
@@ -342,25 +331,6 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
               AI
             </motion.div>
             
-            {/* Long press indicator */}
-            {isLongPressing && !isDragging && (
-              <motion.div
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0, opacity: 0 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                style={{
-                  position: 'absolute',
-                  top: '-8px',
-                  right: '-8px',
-                  width: '16px',
-                  height: '16px',
-                  background: '#00ff00',
-                  borderRadius: '50%',
-                  boxShadow: '0 0 12px rgba(0, 255, 0, 0.9)',
-                }}
-              />
-            )}
           </motion.div>
         )}
 
@@ -399,33 +369,6 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                 />
               </div>
 
-              <button
-                type="button"
-                className="ai-chat-button"
-                onClick={triggerOpen}
-                style={{
-                  display: 'flex',
-                  height: 'fit-content',
-                  flex: 1,
-                  justifyContent: 'flex-end',
-                  borderRadius: '9999px',
-                  padding: '2px 8px',
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--text-primary)',
-                  fontFamily: 'var(--font-primary)',
-                  fontSize: '0.875rem',
-                  fontWeight: 'bold',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  transition: 'all var(--transition-normal)',
-                  cursor: 'pointer',
-                }}
-              >
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  Ask AI
-                </span>
-              </button>
             </div>
           </footer>
         )}
