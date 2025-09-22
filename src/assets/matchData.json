@@ -5,26 +5,26 @@
       "name": "NBA",
       "sport": "basketball",
       "gender": "m",
-      "imageURL": "https://via.placeholder.com/100x100/1a1a2e/16213e?text=NBA"
+      "imageURL": "data:image/svg+xml;base64,CiAgICA8c3ZnIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogICAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMWExYTJlIi8+CiAgICAgIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzAiIAogICAgICAgICAgICBmaWxsPSIjMTYyMTNlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIj4KICAgICAgICBOQkEKICAgICAgPC90ZXh0PgogICAgPC9zdmc+CiAg"
     },
     "f1": {
       "id": "f1",
       "name": "Formula 1",
       "sport": "racing",
-      "imageURL": "https://via.placeholder.com/100x100/e94560/0f3460?text=F1"
+      "imageURL": "data:image/svg+xml;base64,CiAgICA8c3ZnIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogICAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTk0NTYwIi8+CiAgICAgIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzAiIAogICAgICAgICAgICBmaWxsPSIjMGYzNDYwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIj4KICAgICAgICBGMQogICAgICA8L3RleHQ+CiAgICA8L3N2Zz4KICA="
     },
     "fifa": {
       "id": "fifa",
       "name": "FIFA World Cup",
       "sport": "soccer",
       "gender": "m",
-      "imageURL": "https://via.placeholder.com/100x100/16537e/533483?text=FIFA"
+      "imageURL": "data:image/svg+xml;base64,CiAgICA8c3ZnIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogICAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMTY1MzdlIi8+CiAgICAgIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzAiIAogICAgICAgICAgICBmaWxsPSIjNTMzNDgzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIj4KICAgICAgICBGSUZBCiAgICAgIDwvdGV4dD4KICAgIDwvc3ZnPgogIA=="
     },
     "wwe": {
       "id": "wwe",
       "name": "WWE",
       "sport": "wrestling",
-      "imageURL": "https://via.placeholder.com/100x100/d4af37/1a1a2e?text=WWE"
+      "imageURL": "data:image/svg+xml;base64,CiAgICA8c3ZnIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogICAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZDRhZjM3Ii8+CiAgICAgIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzAiIAogICAgICAgICAgICBmaWxsPSIjMWExYTJlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIj4KICAgICAgICBXV0UKICAgICAgPC90ZXh0PgogICAgPC9zdmc+CiAg"
     }
   },
   "competitors": {
@@ -33,13 +33,13 @@
         "id": "okc",
         "name": "Oklahoma City Thunder",
         "abbreviation": "OKC",
-        "imageURL": "https://via.placeholder.com/80x80/007ac1/ffffff?text=OKC"
+        "imageURL": "data:image/svg+xml;base64,CiAgICA8c3ZnIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzAwN2FjMSIvPgogICAgICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiAKICAgICAgICAgICAgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+CiAgICAgICAgT0tDCiAgICAgIDwvdGV4dD4KICAgIDwvc3ZnPgogIA=="
       },
       "ind": {
         "id": "ind",
         "name": "Indiana Pacers",
         "abbreviation": "IND",
-        "imageURL": "https://via.placeholder.com/80x80/002d62/fdbb30?text=IND"
+        "imageURL": "data:image/svg+xml;base64,CiAgICA8c3ZnIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzAwMmQ2MiIvPgogICAgICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiAKICAgICAgICAgICAgZmlsbD0iI2ZkYmIzMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+CiAgICAgICAgSU5ECiAgICAgIDwvdGV4dD4KICAgIDwvc3ZnPgogIA=="
       }
     },
     "f1": {
@@ -47,31 +47,31 @@
         "id": "verstappen",
         "name": "Max Verstappen",
         "abbreviation": "VER",
-        "imageURL": "https://via.placeholder.com/80x80/0600ef/ffffff?text=VER"
+        "imageURL": "data:image/svg+xml;base64,CiAgICA8c3ZnIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzA2MDBlZiIvPgogICAgICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiAKICAgICAgICAgICAgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+CiAgICAgICAgVkVSCiAgICAgIDwvdGV4dD4KICAgIDwvc3ZnPgogIA=="
       },
       "hamilton": {
         "id": "hamilton",
         "name": "Lewis Hamilton",
         "abbreviation": "HAM",
-        "imageURL": "https://via.placeholder.com/80x80/00d2be/ffffff?text=HAM"
+        "imageURL": "data:image/svg+xml;base64,CiAgICA8c3ZnIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzAwZDJiZSIvPgogICAgICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiAKICAgICAgICAgICAgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+CiAgICAgICAgSEFNCiAgICAgIDwvdGV4dD4KICAgIDwvc3ZnPgogIA=="
       },
       "leclerc": {
         "id": "leclerc",
         "name": "Charles Leclerc",
         "abbreviation": "LEC",
-        "imageURL": "https://via.placeholder.com/80x80/dc143c/ffffff?text=LEC"
+        "imageURL": "data:image/svg+xml;base64,CiAgICA8c3ZnIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2RjMTQzYyIvPgogICAgICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiAKICAgICAgICAgICAgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+CiAgICAgICAgTEVDCiAgICAgIDwvdGV4dD4KICAgIDwvc3ZnPgogIA=="
       },
       "norris": {
         "id": "norris",
         "name": "Lando Norris",
         "abbreviation": "NOR",
-        "imageURL": "https://via.placeholder.com/80x80/ff8700/ffffff?text=NOR"
+        "imageURL": "data:image/svg+xml;base64,CiAgICA8c3ZnIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2ZmODcwMCIvPgogICAgICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiAKICAgICAgICAgICAgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+CiAgICAgICAgTk9SCiAgICAgIDwvdGV4dD4KICAgIDwvc3ZnPgogIA=="
       },
       "russell": {
         "id": "russell",
         "name": "George Russell",
         "abbreviation": "RUS",
-        "imageURL": "https://via.placeholder.com/80x80/00d2be/ffffff?text=RUS"
+        "imageURL": "data:image/svg+xml;base64,CiAgICA8c3ZnIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzAwZDJiZSIvPgogICAgICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiAKICAgICAgICAgICAgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+CiAgICAgICAgUlVTCiAgICAgIDwvdGV4dD4KICAgIDwvc3ZnPgogIA=="
       }
     },
     "fifa": {
@@ -79,25 +79,25 @@
         "id": "argentina",
         "name": "Argentina",
         "abbreviation": "ARG",
-        "imageURL": "https://via.placeholder.com/80x80/74acdf/ffffff?text=ARG"
+        "imageURL": "data:image/svg+xml;base64,CiAgICA8c3ZnIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzc0YWNkZiIvPgogICAgICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiAKICAgICAgICAgICAgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+CiAgICAgICAgQVJHCiAgICAgIDwvdGV4dD4KICAgIDwvc3ZnPgogIA=="
       },
       "brazil": {
         "id": "brazil",
         "name": "Brazil",
         "abbreviation": "BRA",
-        "imageURL": "https://via.placeholder.com/80x80/009739/ffdf00?text=BRA"
+        "imageURL": "data:image/svg+xml;base64,CiAgICA8c3ZnIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzAwOTczOSIvPgogICAgICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiAKICAgICAgICAgICAgZmlsbD0iI2ZmZGYwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+CiAgICAgICAgQlJBCiAgICAgIDwvdGV4dD4KICAgIDwvc3ZnPgogIA=="
       },
       "france": {
         "id": "france",
         "name": "France",
         "abbreviation": "FRA",
-        "imageURL": "https://via.placeholder.com/80x80/0055a4/ffffff?text=FRA"
+        "imageURL": "data:image/svg+xml;base64,CiAgICA8c3ZnIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzAwNTVhNCIvPgogICAgICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiAKICAgICAgICAgICAgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+CiAgICAgICAgRlJBCiAgICAgIDwvdGV4dD4KICAgIDwvc3ZnPgogIA=="
       },
       "spain": {
         "id": "spain",
         "name": "Spain",
         "abbreviation": "ESP",
-        "imageURL": "https://via.placeholder.com/80x80/aa151b/ffdf00?text=ESP"
+        "imageURL": "data:image/svg+xml;base64,CiAgICA8c3ZnIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2FhMTUxYiIvPgogICAgICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiAKICAgICAgICAgICAgZmlsbD0iI2ZmZGYwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+CiAgICAgICAgRVNQCiAgICAgIDwvdGV4dD4KICAgIDwvc3ZnPgogIA=="
       }
     },
     "wwe": {
@@ -105,37 +105,37 @@
         "id": "reigns",
         "name": "Roman Reigns",
         "abbreviation": "RR",
-        "imageURL": "https://via.placeholder.com/80x80/1a1a2e/d4af37?text=RR"
+        "imageURL": "data:image/svg+xml;base64,CiAgICA8c3ZnIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzFhMWEyZSIvPgogICAgICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiAKICAgICAgICAgICAgZmlsbD0iI2Q0YWYzNyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+CiAgICAgICAgUlIKICAgICAgPC90ZXh0PgogICAgPC9zdmc+CiAg"
       },
       "rollins": {
         "id": "rollins",
         "name": "Seth Rollins",
         "abbreviation": "SR",
-        "imageURL": "https://via.placeholder.com/80x80/1a1a2e/e94560?text=SR"
+        "imageURL": "data:image/svg+xml;base64,CiAgICA8c3ZnIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzFhMWEyZSIvPgogICAgICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiAKICAgICAgICAgICAgZmlsbD0iI2U5NDU2MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+CiAgICAgICAgU1IKICAgICAgPC90ZXh0PgogICAgPC9zdmc+CiAg"
       },
       "mcintyre": {
         "id": "mcintyre",
         "name": "Drew McIntyre",
         "abbreviation": "DM",
-        "imageURL": "https://via.placeholder.com/80x80/1a1a2e/16537e?text=DM"
+        "imageURL": "data:image/svg+xml;base64,CiAgICA8c3ZnIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzFhMWEyZSIvPgogICAgICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiAKICAgICAgICAgICAgZmlsbD0iIzE2NTM3ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+CiAgICAgICAgRE0KICAgICAgPC90ZXh0PgogICAgPC9zdmc+CiAg"
       },
       "cena": {
         "id": "cena",
         "name": "John Cena",
         "abbreviation": "JC",
-        "imageURL": "https://via.placeholder.com/80x80/1a1a2e/00d2be?text=JC"
+        "imageURL": "data:image/svg+xml;base64,CiAgICA8c3ZnIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzFhMWEyZSIvPgogICAgICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiAKICAgICAgICAgICAgZmlsbD0iIzAwZDJiZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+CiAgICAgICAgSkMKICAgICAgPC90ZXh0PgogICAgPC9zdmc+CiAg"
       },
       "lesnar": {
         "id": "lesnar",
         "name": "Brock Lesnar",
         "abbreviation": "BL",
-        "imageURL": "https://via.placeholder.com/80x80/1a1a2e/ff8700?text=BL"
+        "imageURL": "data:image/svg+xml;base64,CiAgICA8c3ZnIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzFhMWEyZSIvPgogICAgICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiAKICAgICAgICAgICAgZmlsbD0iI2ZmODcwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+CiAgICAgICAgQkwKICAgICAgPC90ZXh0PgogICAgPC9zdmc+CiAg"
       },
       "orton": {
         "id": "orton",
         "name": "Randy Orton",
         "abbreviation": "RO",
-        "imageURL": "https://via.placeholder.com/80x80/1a1a2e/533483?text=RO"
+        "imageURL": "data:image/svg+xml;base64,CiAgICA8c3ZnIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzFhMWEyZSIvPgogICAgICA8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiAKICAgICAgICAgICAgZmlsbD0iIzUzMzQ4MyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+CiAgICAgICAgUk8KICAgICAgPC90ZXh0PgogICAgPC9zdmc+CiAg"
       }
     }
   },
@@ -159,7 +159,10 @@
         "scheduledDateInUTC": "2025-06-15T20:00:00Z",
         "title": "2025 NBA Finals",
         "subtitle": "Oklahoma City Thunder vs. Indiana Pacers",
-        "competitorIDs": ["okc", "ind"],
+        "competitorIDs": [
+          "okc",
+          "ind"
+        ],
         "conference": "Finals"
       },
       "f1_singapore_2025": {
@@ -171,7 +174,13 @@
         "scheduledDateInUTC": "2025-10-05T12:00:00Z",
         "title": "Singapore Grand Prix 2025",
         "subtitle": "Formula 1 World Championship",
-        "competitorIDs": ["verstappen", "hamilton", "leclerc", "norris", "russell"]
+        "competitorIDs": [
+          "verstappen",
+          "hamilton",
+          "leclerc",
+          "norris",
+          "russell"
+        ]
       },
       "fifa_semifinal_1": {
         "id": "fifa_semifinal_1",
@@ -182,7 +191,10 @@
         "scheduledDateInUTC": "2025-12-18T19:00:00Z",
         "title": "FIFA World Cup Semifinal",
         "subtitle": "Argentina vs. Brazil",
-        "competitorIDs": ["argentina", "brazil"]
+        "competitorIDs": [
+          "argentina",
+          "brazil"
+        ]
       },
       "fifa_semifinal_2": {
         "id": "fifa_semifinal_2",
@@ -193,7 +205,10 @@
         "scheduledDateInUTC": "2025-12-19T19:00:00Z",
         "title": "FIFA World Cup Semifinal",
         "subtitle": "France vs. Spain",
-        "competitorIDs": ["france", "spain"]
+        "competitorIDs": [
+          "france",
+          "spain"
+        ]
       },
       "wwe_royal_rumble_1": {
         "id": "wwe_royal_rumble_1",
@@ -204,7 +219,10 @@
         "scheduledDateInUTC": "2025-01-28T01:00:00Z",
         "title": "Royal Rumble 2025",
         "subtitle": "Roman Reigns vs. Seth Rollins",
-        "competitorIDs": ["reigns", "rollins"]
+        "competitorIDs": [
+          "reigns",
+          "rollins"
+        ]
       },
       "wwe_royal_rumble_2": {
         "id": "wwe_royal_rumble_2",
@@ -215,7 +233,10 @@
         "scheduledDateInUTC": "2025-01-28T02:00:00Z",
         "title": "Royal Rumble 2025",
         "subtitle": "Drew McIntyre vs. John Cena",
-        "competitorIDs": ["mcintyre", "cena"]
+        "competitorIDs": [
+          "mcintyre",
+          "cena"
+        ]
       },
       "wwe_championship": {
         "id": "wwe_championship",
@@ -226,9 +247,11 @@
         "scheduledDateInUTC": "2025-02-15T01:00:00Z",
         "title": "WWE Championship Match",
         "subtitle": "Brock Lesnar vs. Randy Orton",
-        "competitorIDs": ["lesnar", "orton"]
+        "competitorIDs": [
+          "lesnar",
+          "orton"
+        ]
       }
     }
   }
 }
-

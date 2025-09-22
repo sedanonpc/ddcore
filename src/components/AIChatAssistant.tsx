@@ -89,13 +89,16 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
   // Mouse down handler for button - start drag timer
   const handleButtonMouseDown = React.useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
-    dragStartRef.current = { x: e.clientX, y: e.clientY }
-    initialPositionRef.current = { ...position }
-    
-    longPressTimerRef.current = setTimeout(() => {
-      setIsDragging(true)
-      isDraggingRef.current = true
-    }, 500) // 500ms for long press
+    // Only prevent default if we're actually going to drag
+    if (e.button === 0) { // Left mouse button only
+      dragStartRef.current = { x: e.clientX, y: e.clientY }
+      initialPositionRef.current = { ...position }
+      
+      longPressTimerRef.current = setTimeout(() => {
+        setIsDragging(true)
+        isDraggingRef.current = true
+      }, 500) // 500ms for long press
+    }
   }, [position])
 
   // Mouse down handler for chat window header - for dragging the chat window
@@ -110,6 +113,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
 
   const handleMouseMove = React.useCallback((e: MouseEvent) => {
     if (isDraggingRef.current) {
+      e.preventDefault() // Only prevent default when actually dragging
       const deltaX = e.clientX - dragStartRef.current.x
       const deltaY = e.clientY - dragStartRef.current.y
       const newPosition = {
@@ -161,6 +165,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
 
   const handleTouchMove = React.useCallback((e: TouchEvent) => {
     if (isDraggingRef.current) {
+      e.preventDefault() // Only prevent default when actually dragging
       const touch = e.touches[0]
       const deltaX = touch.clientX - dragStartRef.current.x
       const deltaY = touch.clientY - dragStartRef.current.y
@@ -172,7 +177,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
     }
   }, [])
 
-  const handleTouchEnd = React.useCallback(() => {
+  const handleTouchEnd = React.useCallback((e?: TouchEvent) => {
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current)
       longPressTimerRef.current = null
@@ -190,9 +195,9 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
   // Global event listeners for drag
   React.useEffect(() => {
     if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mousemove', handleMouseMove, { passive: false })
       document.addEventListener('mouseup', () => handleMouseUp())
-      document.addEventListener('touchmove', handleTouchMove)
+      document.addEventListener('touchmove', handleTouchMove, { passive: true }) // Use passive for touchmove
       document.addEventListener('touchend', () => handleTouchEnd())
     }
 
@@ -244,23 +249,50 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
   }
 
   return (
-    <div 
-      className={`ai-chat-assistant ${className}`}
-      style={{
-        position: 'fixed',
-        left: position.x,
-        top: position.y,
-        zIndex: 1000,
-        pointerEvents: 'auto',
-      }}
-    >
+    <>
+      {/* Background Blur Overlay */}
+      {showForm && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.3)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            zIndex: 999,
+            pointerEvents: 'auto',
+          }}
+          onClick={triggerClose}
+        />
+      )}
+
+      {/* AI Chat Assistant */}
+      <div 
+        className={`ai-chat-assistant ${className}`}
+        style={{
+          position: 'fixed',
+          left: position.x,
+          top: position.y,
+          zIndex: 1000,
+          pointerEvents: 'auto',
+        }}
+      >
       <motion.div
         ref={wrapperRef}
         className="ai-chat-panel"
         style={{
           background: showForm ? 'var(--bg-card)' : 'transparent',
-          border: showForm ? '1px solid var(--border-accent)' : 'none',
-          boxShadow: showForm ? 'var(--shadow-glow)' : 'none',
+          border: showForm ? '2px solid var(--border-accent)' : 'none',
+          boxShadow: showForm 
+            ? '0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(219, 0, 4, 0.3), var(--shadow-glow)' 
+            : 'none',
           borderRadius: showForm ? '14px' : '50%',
           position: 'relative',
           display: 'flex',
@@ -269,12 +301,13 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
           overflow: 'hidden',
           cursor: showForm ? 'default' : (isDragging ? 'grabbing' : 'grab'),
           userSelect: 'none',
+          touchAction: 'auto', // Allow normal touch behavior
         }}
         initial={false}
         animate={{
           width: showForm ? FORM_WIDTH : BUTTON_SIZE,
           height: showForm ? FORM_HEIGHT : BUTTON_SIZE,
-          scale: isDragging ? 1.15 : 1,
+          scale: isDragging ? 1.15 : (showForm ? 1.05 : 1),
         }}
         transition={{
           type: "spring",
@@ -595,7 +628,8 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
           </form>
         )}
       </motion.div>
-    </div>
+      </div>
+    </>
   )
 }
 
