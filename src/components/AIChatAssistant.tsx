@@ -43,14 +43,15 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
 
   const [showForm, setShowForm] = React.useState(false)
   const [position, setPosition] = React.useState<Position>(() => {
-    // Initialize position based on screen size
+    // Default position: lower right of screen
     const isMobileInit = window.innerWidth < 768
     return {
-      x: isMobileInit ? window.innerWidth - 80 : window.innerWidth - 100,
-      y: isMobileInit ? window.innerHeight - 80 : window.innerHeight - 100
+      x: window.innerWidth - (isMobileInit ? 80 : 100),
+      y: window.innerHeight - (isMobileInit ? 80 : 100)
     }
   })
   const [isDragging, setIsDragging] = React.useState(false)
+  const [isDragReady, setIsDragReady] = React.useState(false)
   const [windowSize, setWindowSize] = React.useState({ width: window.innerWidth, height: window.innerHeight })
 
   // Chat-specific state
@@ -87,6 +88,12 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
   const triggerClose = React.useCallback(() => {
     setShowForm(false)
     textareaRef.current?.blur()
+    
+    // Reset button position to default (lower right)
+    const isMobile = window.innerWidth < 768
+    const defaultX = window.innerWidth - (isMobile ? 80 : 100)
+    const defaultY = window.innerHeight - (isMobile ? 80 : 100)
+    setPosition({ x: defaultX, y: defaultY })
   }, [])
 
 
@@ -95,6 +102,11 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
   const handleButtonClick = React.useCallback(() => {
     // Only open chat if we haven't been dragging
     if (!showForm && !wasDraggingRef.current) {
+      // Center the chat window when opening
+      const centerX = (window.innerWidth - FORM_WIDTH) / 2
+      const centerY = (window.innerHeight - FORM_HEIGHT) / 2
+      setPosition({ x: centerX, y: centerY })
+      
       setShowForm(true)
       setTimeout(() => {
         textareaRef.current?.focus()
@@ -102,15 +114,19 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
     }
     // Reset the wasDragging flag after click
     wasDraggingRef.current = false
-  }, [showForm])
+  }, [showForm, FORM_WIDTH, FORM_HEIGHT])
 
   // Mouse down handler for button - start drag timer
   const handleButtonMouseDown = React.useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
     e.stopPropagation()
-    // Only prevent default if we're actually going to drag
+    
     if (e.button === 0) { // Left mouse button only
       dragStartRef.current = { x: e.clientX, y: e.clientY }
       initialPositionRef.current = { ...position }
+      
+      // Start drag ready animation
+      setIsDragReady(true)
       
       longPressTimerRef.current = setTimeout(() => {
         setIsDragging(true)
@@ -131,13 +147,20 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
 
   const handleMouseMove = React.useCallback((e: MouseEvent) => {
     if (isDraggingRef.current) {
-      e.preventDefault() // Only prevent default when actually dragging
+      e.preventDefault()
+      e.stopPropagation()
       const deltaX = e.clientX - dragStartRef.current.x
       const deltaY = e.clientY - dragStartRef.current.y
+      
+      // Calculate new position with proper boundaries
+      const newX = initialPositionRef.current.x + deltaX
+      const newY = initialPositionRef.current.y + deltaY
+      
       const newPosition = {
-        x: Math.max(0, Math.min(window.innerWidth - BUTTON_SIZE, initialPositionRef.current.x + deltaX)),
-        y: Math.max(0, Math.min(window.innerHeight - BUTTON_SIZE, initialPositionRef.current.y + deltaY))
+        x: Math.max(0, Math.min(window.innerWidth - BUTTON_SIZE, newX)),
+        y: Math.max(0, Math.min(window.innerHeight - BUTTON_SIZE, newY))
       }
+      
       setPosition(newPosition)
     }
   }, [BUTTON_SIZE])
@@ -147,6 +170,9 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
       clearTimeout(longPressTimerRef.current)
       longPressTimerRef.current = null
     }
+    
+    // Reset drag ready state
+    setIsDragReady(false)
     
     if (isDraggingRef.current) {
       // We were dragging - just stop dragging
@@ -159,16 +185,51 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
 
   // Touch handlers for button only
   const handleButtonTouchStart = React.useCallback((e: React.TouchEvent) => {
+    e.preventDefault()
     e.stopPropagation()
     const touch = e.touches[0]
     dragStartRef.current = { x: touch.clientX, y: touch.clientY }
     initialPositionRef.current = { ...position }
     
+    // Start drag ready animation
+    setIsDragReady(true)
+    
+    // Start drag after 0.5 second delay
     longPressTimerRef.current = setTimeout(() => {
       setIsDragging(true)
       isDraggingRef.current = true
-    }, 500) // 500ms for long press
+    }, 500)
   }, [position])
+
+  // Touch click handler for button
+  const handleButtonTouchEnd = React.useCallback(() => {
+    // Clear the drag ready timer
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
+    }
+    
+    // Reset drag states
+    setIsDragReady(false)
+    setIsDragging(false)
+    isDraggingRef.current = false
+    
+    // Only open chat if we haven't been dragging
+    if (!showForm && !wasDraggingRef.current) {
+      // Center the chat window when opening
+      const centerX = (window.innerWidth - FORM_WIDTH) / 2
+      const centerY = (window.innerHeight - FORM_HEIGHT) / 2
+      setPosition({ x: centerX, y: centerY })
+      
+      setShowForm(true)
+      setTimeout(() => {
+        textareaRef.current?.focus()
+      })
+    }
+    
+    // Reset the wasDragging flag after touch end
+    wasDraggingRef.current = false
+  }, [showForm, FORM_WIDTH, FORM_HEIGHT])
 
   // Touch handlers for chat window header
   const handleChatTouchStart = React.useCallback((e: React.TouchEvent) => {
@@ -183,14 +244,21 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
 
   const handleTouchMove = React.useCallback((e: TouchEvent) => {
     if (isDraggingRef.current) {
-      e.preventDefault() // Only prevent default when actually dragging
+      e.preventDefault()
+      e.stopPropagation()
       const touch = e.touches[0]
       const deltaX = touch.clientX - dragStartRef.current.x
       const deltaY = touch.clientY - dragStartRef.current.y
+      
+      // Calculate new position with proper boundaries
+      const newX = initialPositionRef.current.x + deltaX
+      const newY = initialPositionRef.current.y + deltaY
+      
       const newPosition = {
-        x: Math.max(0, Math.min(window.innerWidth - BUTTON_SIZE, initialPositionRef.current.x + deltaX)),
-        y: Math.max(0, Math.min(window.innerHeight - BUTTON_SIZE, initialPositionRef.current.y + deltaY))
+        x: Math.max(0, Math.min(window.innerWidth - BUTTON_SIZE, newX)),
+        y: Math.max(0, Math.min(window.innerHeight - BUTTON_SIZE, newY))
       }
+      
       setPosition(newPosition)
     }
   }, [BUTTON_SIZE])
@@ -200,6 +268,9 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
       clearTimeout(longPressTimerRef.current)
       longPressTimerRef.current = null
     }
+    
+    // Reset drag ready state
+    setIsDragReady(false)
     
     if (isDraggingRef.current) {
       // We were dragging - just stop dragging
@@ -215,7 +286,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove, { passive: false })
       document.addEventListener('mouseup', () => handleMouseUp())
-      document.addEventListener('touchmove', handleTouchMove, { passive: true }) // Use passive for touchmove
+      document.addEventListener('touchmove', handleTouchMove, { passive: false }) // Changed to false for better control
       document.addEventListener('touchend', () => handleTouchEnd())
     }
 
@@ -501,7 +572,9 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
         animate={{
           width: showForm ? FORM_WIDTH : BUTTON_SIZE,
           height: showForm ? FORM_HEIGHT : BUTTON_SIZE,
-          scale: isDragging ? 1.15 : (showForm ? 1.05 : 1),
+          scale: isDragging ? 1.1 : (isDragReady ? 1.05 : (showForm ? 1.05 : 1)),
+          opacity: isDragging ? 0.9 : (isDragReady ? 0.8 : 1),
+          filter: isDragReady ? 'hue-rotate(240deg) saturate(2) brightness(1.2)' : 'hue-rotate(0deg) saturate(1)',
         }}
         transition={{
           type: "spring",
@@ -509,6 +582,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
           damping: 30,
           mass: 0.8,
           delay: showForm ? 0 : 0.05,
+          filter: { duration: 0.3, ease: "easeInOut" },
         }}
       >
          {/* Animated AI Button - Only show when form is closed */}
@@ -529,6 +603,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
              onClick={handleButtonClick}
              onMouseDown={handleButtonMouseDown}
              onTouchStart={handleButtonTouchStart}
+             onTouchEnd={handleButtonTouchEnd}
            >
              {/* Enhanced Red Border Frame */}
              <div
@@ -543,6 +618,27 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                  boxShadow: '0 0 15px rgba(255, 0, 0, 0.3), inset 0 0 15px rgba(255, 0, 0, 0.1)',
                }}
              />
+             
+             {/* Drag Ready Progress Ring */}
+             {isDragReady && !isDragging && (
+               <div
+                 style={{
+                   position: 'absolute',
+                   zIndex: -1,
+                   height: 'calc(100% + 12px)',
+                   width: 'calc(100% + 12px)',
+                   top: '-6px',
+                   left: '-6px',
+                   border: '3px solid transparent',
+                   borderTop: '3px solid #000080',
+                   borderRight: '3px solid #000080',
+                   borderRadius: '50%',
+                   background: 'transparent',
+                   animation: 'dragReadySpin 0.3s linear infinite',
+                   filter: 'drop-shadow(0 0 8px #000080)',
+                 }}
+               />
+             )}
              
              {/* Inner Ring for Depth */}
              <div
@@ -576,6 +672,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                  boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.3), inset 0 -2px 4px rgba(255, 0, 0, 0.1)',
                  fontFamily: 'monospace',
                  transition: 'all 0.3s ease',
+                 animation: isDragReady ? 'buttonSpin 0.5s linear infinite' : 'none',
                }}
              >
                {/* Enhanced Icon with Visual Effects */}
@@ -645,14 +742,15 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
           <footer style={{
             marginTop: 'auto',
             display: 'flex',
-            height: '44px',
+            height: '32px',
             alignItems: 'center',
             justifyContent: 'center',
             whiteSpace: 'nowrap',
             userSelect: 'none',
-            background: '#000000',
-            border: '1px solid #00ff00',
-            borderRadius: '0 0 4px 4px',
+            background: '#2a0a0a',
+            border: 'none',
+            borderTop: '1px solid #dc2626',
+            borderRadius: '0 0 8px 8px',
             fontFamily: 'monospace',
           }}>
             <div style={{
@@ -665,18 +763,19 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
               <div style={{ display: 'flex', width: 'fit-content', alignItems: 'center', gap: '8px' }}>
                 <div
                   style={{
-                    width: '8px',
-                    height: '8px',
-                    background: '#00ff00',
-                    borderRadius: '0',
-                    animation: 'consoleBlink 1s ease-in-out infinite',
+                    width: '6px',
+                    height: '6px',
+                    background: '#dc2626',
+                    borderRadius: '50%',
+                    animation: 'consoleBlink 2s ease-in-out infinite',
+                    boxShadow: '0 0 6px rgba(220, 38, 38, 0.6)',
                   }}
                 />
                 <span style={{
-                  color: '#00ff00',
-                  fontSize: '0.75rem',
+                  color: '#ff6b6b',
+                  fontSize: '0.7rem',
                   textTransform: 'uppercase',
-                  letterSpacing: '1px',
+                  letterSpacing: '0.5px',
                 }}>
                   SYSTEM_READY
                 </span>
@@ -694,91 +793,118 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                 width: FORM_WIDTH,
                 height: FORM_HEIGHT,
                 pointerEvents: "all",
-                background: '#000000',
-                border: '1px solid #DB0004',
-                borderRadius: '4px',
+                background: '#1a0a0a',
+                border: '1px solid #dc2626',
+                borderRadius: '8px',
                 overflow: 'hidden',
-                boxShadow: '0 0 20px rgba(239, 68, 68, 0.3)',
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(220, 38, 38, 0.4)',
                 display: 'flex',
                 flexDirection: 'column',
               }}
             >
+              {/* Red accent lines */}
+              <div style={{
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: '2px',
+                background: 'linear-gradient(to bottom, #dc2626, transparent)',
+                zIndex: 1,
+              }} />
+              <div style={{
+                position: 'absolute',
+                right: 0,
+                top: 0,
+                bottom: 0,
+                width: '2px',
+                background: 'linear-gradient(to bottom, #dc2626, transparent)',
+                zIndex: 1,
+              }} />
               {/* Header Bar */}
               <div
                 style={{
                   height: '44px',
-                  background: '#000000',
-                  border: '1px solid #00ff00',
+                  background: '#2a0a0a',
+                  border: 'none',
+                  borderBottom: '1px solid #dc2626',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '0 16px',
                   cursor: 'grab',
                   userSelect: 'none',
-                  borderRadius: '4px 4px 0 0',
+                  borderRadius: '0',
                   fontFamily: 'monospace',
                 }}
                 onMouseDown={handleChatMouseDown}
                 onTouchStart={handleChatTouchStart}
               >
-                {/* Left side - Console Title */}
+                {/* Left side - Terminal Title */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{
-                    width: '20px',
-                    height: '20px',
-                    border: '1px solid #00ff00',
-                    background: '#000000',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: '2px',
-                  }}>
-                    <div style={{
-                      width: '8px',
-                      height: '8px',
-                      background: '#00ff00',
-                      borderRadius: '0',
-                    }} />
-                  </div>
                   <span style={{
-                    color: '#00ff00',
+                    color: '#ff6b6b',
                     fontFamily: 'monospace',
                     fontSize: '0.875rem',
-                    fontWeight: 'bold',
-                    textTransform: 'uppercase',
-                    letterSpacing: '1px',
-                    textShadow: '0 0 3px rgba(0, 255, 0, 0.8)',
+                    fontWeight: 'normal',
+                    textTransform: 'none',
+                    letterSpacing: '0.5px',
+                    textShadow: '0 0 10px rgba(255, 107, 107, 0.5)',
                   }}>
-                    AI_CONSOLE
+                    &gt;_ DAREDEVIL_ANALYSIS_TERMINAL
                   </span>
                 </div>
 
-                {/* Right side - Close button */}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    triggerClose()
-                  }}
-                  style={{
-                    width: '24px',
-                    height: '24px',
-                    background: 'transparent',
-                    border: '1px solid #00ff00',
-                    color: '#00ff00',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: '2px',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    fontFamily: 'monospace',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  [X]
-                </button>
+                {/* Right side - Action buttons */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button
+                    type="button"
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#ff6b6b',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      opacity: 0.7,
+                      transition: 'opacity 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
+                  >
+                    🔗
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      triggerClose()
+                    }}
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#ff6b6b',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      opacity: 0.7,
+                      transition: 'opacity 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
+                  >
+                    ×
+                  </button>
+                </div>
               </div>
 
               {/* Messages Area */}
@@ -786,57 +912,158 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                 flex: 1,
                 overflowY: 'auto',
                 padding: '16px',
-                background: '#000000',
+                background: '#1a0a0a',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '12px',
+                gap: '16px',
                 fontFamily: 'monospace',
+                position: 'relative',
               }}>
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    style={{
-                      display: 'flex',
-                      justifyContent: message.isUser ? 'flex-end' : 'flex-start',
-                    }}
-                  >
-                    <div style={{
-                      maxWidth: '80%',
-                      padding: '8px 12px',
-                      borderRadius: '2px',
-                      background: message.isUser ? '#001100' : '#000800',
-                      color: '#00ff00',
-                      fontSize: '0.75rem',
-                      border: '1px solid #00ff00',
-                      fontFamily: 'monospace',
-                      lineHeight: '1.4',
-                    }}>
-                      {message.isUser ? '> ' : 'AI: '}{message.content}
+                {/* Grid pattern overlay */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: `
+                    linear-gradient(90deg, rgba(255, 107, 107, 0.08) 1px, transparent 1px),
+                    linear-gradient(rgba(255, 107, 107, 0.08) 1px, transparent 1px)
+                  `,
+                  backgroundSize: '20px 20px',
+                  pointerEvents: 'none',
+                  zIndex: 0,
+                }} />
+                
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  {messages.map((message) => (
+                    <div
+                      key={message.id}
+                      style={{
+                        display: 'flex',
+                        justifyContent: message.isUser ? 'flex-end' : 'flex-start',
+                        marginBottom: '16px',
+                      }}
+                    >
+                      <div style={{
+                        maxWidth: '85%',
+                        padding: '12px 16px',
+                        borderRadius: '8px',
+                        background: message.isUser 
+                          ? 'linear-gradient(135deg, #dc2626, #b91c1c)' 
+                          : 'linear-gradient(135deg, #991b1b, #7f1d1d)',
+                        color: '#ffffff',
+                        fontSize: '0.875rem',
+                        border: 'none',
+                        fontFamily: 'monospace',
+                        lineHeight: '1.5',
+                        boxShadow: message.isUser 
+                          ? '0 0 10px rgba(220, 38, 38, 0.4)' 
+                          : '0 0 10px rgba(153, 27, 27, 0.4)',
+                        position: 'relative',
+                      }}>
+                        {!message.isUser && (
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            marginBottom: '8px',
+                            fontSize: '0.75rem',
+                          }}>
+                            <span style={{ color: '#ff6b6b', fontWeight: 'bold' }}>
+                              &gt;_ DareDevil
+                            </span>
+                            <span style={{ color: '#ff9999', fontSize: '0.7rem' }}>
+                              NBA Analytics Expert
+                            </span>
+                          </div>
+                        )}
+                        <div style={{ marginBottom: '8px' }}>
+                          {message.content}
+                        </div>
+                        {!message.isUser && (
+                          <div style={{
+                            fontSize: '0.7rem',
+                            color: '#ff9999',
+                            marginBottom: '4px',
+                          }}>
+                            PREDICTION ENGINE v2.5
+                          </div>
+                        )}
+                        <div style={{
+                          fontSize: '0.7rem',
+                          color: '#ff9999',
+                          textAlign: message.isUser ? 'right' : 'left',
+                        }}>
+                          {message.timestamp.toLocaleTimeString('en-US', { 
+                            hour: '2-digit', 
+                            minute: '2-digit',
+                            hour12: false 
+                          })}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
-                {isLoading && (
-                  <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                    <div style={{
-                      padding: '8px 12px',
-                      borderRadius: '2px',
-                      background: '#000800',
-                      color: '#00ff00',
-                      fontSize: '0.75rem',
-                      border: '1px solid #00ff00',
-                      fontFamily: 'monospace',
-                    }}>
-                      AI: PROCESSING...
+                  ))}
+                  {isLoading && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                      <div style={{
+                        maxWidth: '85%',
+                        padding: '12px 16px',
+                        borderRadius: '8px',
+                        background: 'linear-gradient(135deg, #991b1b, #7f1d1d)',
+                        color: '#ffffff',
+                        fontSize: '0.875rem',
+                        border: 'none',
+                        fontFamily: 'monospace',
+                        lineHeight: '1.5',
+                        boxShadow: '0 0 10px rgba(153, 27, 27, 0.4)',
+                        position: 'relative',
+                      }}>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          marginBottom: '8px',
+                          fontSize: '0.75rem',
+                        }}>
+                          <span style={{ color: '#ff6b6b', fontWeight: 'bold' }}>
+                            &gt;_ DareDevil
+                          </span>
+                          <span style={{ color: '#ff9999', fontSize: '0.7rem' }}>
+                            NBA Analytics Expert
+                          </span>
+                        </div>
+                        <div style={{ marginBottom: '8px' }}>
+                          I'm experiencing some technical difficulties with my analytics systems. Let me get back to you with that insight shortly.
+                        </div>
+                        <div style={{
+                          fontSize: '0.7rem',
+                          color: '#ff9999',
+                          marginBottom: '4px',
+                        }}>
+                          PREDICTION ENGINE v2.5
+                        </div>
+                        <div style={{
+                          fontSize: '0.7rem',
+                          color: '#ff9999',
+                        }}>
+                          {new Date().toLocaleTimeString('en-US', { 
+                            hour: '2-digit', 
+                            minute: '2-digit',
+                            hour12: false 
+                          })}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               {/* Input Area */}
               <div style={{
                 padding: '16px',
-                background: '#000000',
-                borderTop: '1px solid #00ff00',
+                background: '#1a0a0a',
+                borderTop: '1px solid #dc2626',
                 fontFamily: 'monospace',
               }}>
                 {/* Input Type Toggle */}
@@ -850,14 +1077,15 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                     onClick={() => setInputType('text')}
                     style={{
                       padding: '6px 12px',
-                      background: inputType === 'text' ? '#001100' : 'transparent',
-                      border: '1px solid #00ff00',
-                      color: '#00ff00',
-                      borderRadius: '2px',
+                      background: inputType === 'text' ? '#dc2626' : 'transparent',
+                      border: '1px solid #dc2626',
+                      color: inputType === 'text' ? '#ffffff' : '#ff6b6b',
+                      borderRadius: '4px',
                       fontSize: '0.75rem',
                       cursor: 'pointer',
                       fontFamily: 'monospace',
                       textTransform: 'uppercase',
+                      transition: 'all 0.2s ease',
                     }}
                   >
                     [TEXT]
@@ -867,14 +1095,15 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                     onClick={() => setInputType('voice')}
                     style={{
                       padding: '6px 12px',
-                      background: inputType === 'voice' ? '#001100' : 'transparent',
-                      border: '1px solid #00ff00',
-                      color: '#00ff00',
-                      borderRadius: '2px',
+                      background: inputType === 'voice' ? '#dc2626' : 'transparent',
+                      border: '1px solid #dc2626',
+                      color: inputType === 'voice' ? '#ffffff' : '#ff6b6b',
+                      borderRadius: '4px',
                       fontSize: '0.75rem',
                       cursor: 'pointer',
                       fontFamily: 'monospace',
                       textTransform: 'uppercase',
+                      transition: 'all 0.2s ease',
                     }}
                   >
                     [VOICE]
@@ -883,24 +1112,24 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
 
                 {/* Text Input */}
                 {inputType === 'text' && (
-                  <form onSubmit={handleTextSubmit}>
+                  <form onSubmit={handleTextSubmit} style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
                     <textarea
                       ref={textareaRef}
-                      placeholder="> ENTER_MESSAGE_HERE"
+                      placeholder="Ask DareDevil for betting advice..."
                       disabled={isLoading}
                       style={{
-                        width: '100%',
-                        height: '60px',
+                        flex: 1,
+                        height: '40px',
                         resize: 'none',
                         outline: 'none',
-                        background: '#000800',
-                        border: '1px solid #00ff00',
-                        borderRadius: '2px',
-                        color: '#00ff00',
+                        background: '#2a0a0a',
+                        border: '1px solid #dc2626',
+                        borderRadius: '6px',
+                        color: '#ffffff',
                         fontFamily: 'monospace',
-                        fontSize: '0.75rem',
-                        padding: '8px',
-                        marginBottom: '8px',
+                        fontSize: '0.875rem',
+                        padding: '8px 12px',
+                        lineHeight: '1.4',
                       }}
                       onKeyDown={handleKeys}
                     />
@@ -908,20 +1137,23 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                       type="submit"
                       disabled={isLoading}
                       style={{
-                        width: '100%',
-                        padding: '8px',
-                        background: '#001100',
-                        border: '1px solid #00ff00',
-                        borderRadius: '2px',
-                        color: '#00ff00',
-                        fontSize: '0.75rem',
+                        width: '40px',
+                        height: '40px',
+                        background: '#dc2626',
+                        border: 'none',
+                        borderRadius: '6px',
+                        color: '#ffffff',
+                        fontSize: '16px',
                         cursor: isLoading ? 'not-allowed' : 'pointer',
                         opacity: isLoading ? 0.6 : 1,
-                        fontFamily: 'monospace',
-                        textTransform: 'uppercase',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 0 8px rgba(220, 38, 38, 0.3)',
                       }}
                     >
-                      {isLoading ? '[SENDING...]' : '[SEND]'}
+                      ✈️
                     </button>
                   </form>
                 )}
@@ -939,10 +1171,12 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                       style={{
                         width: '60px',
                         height: '60px',
-                        borderRadius: '2px',
-                        background: isRecording ? '#001100' : '#000800',
-                        border: '2px solid #00ff00',
-                        color: '#00ff00',
+                        borderRadius: '8px',
+                        background: isRecording 
+                          ? 'linear-gradient(135deg, #dc2626, #b91c1c)' 
+                          : 'linear-gradient(135deg, #dc2626, #b91c1c)',
+                        border: 'none',
+                        color: '#ffffff',
                         fontSize: '16px',
                         cursor: isLoading ? 'not-allowed' : 'pointer',
                         opacity: isLoading ? 0.6 : 1,
@@ -952,19 +1186,21 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                         margin: '0 auto',
                         fontFamily: 'monospace',
                         fontWeight: 'bold',
+                        boxShadow: isRecording 
+                          ? '0 0 15px rgba(220, 38, 38, 0.6)' 
+                          : '0 0 15px rgba(220, 38, 38, 0.4)',
+                        transition: 'all 0.2s ease',
                       }}
                     >
-                      {isRecording ? '[STOP]' : '[REC]'}
+                      {isRecording ? '⏹️' : '🎤'}
                     </button>
                     <p style={{
-                      color: '#00ff00',
+                      color: '#ff6b6b',
                       fontSize: '0.75rem',
                       marginTop: '8px',
-                      opacity: 0.7,
                       fontFamily: 'monospace',
-                      textTransform: 'uppercase',
                     }}>
-                      {isRecording ? 'RECORDING... RELEASE TO SEND' : 'HOLD TO RECORD'}
+                      {isRecording ? 'Recording... Release to send' : 'Hold to record'}
                     </p>
                   </div>
                 )}
