@@ -530,95 +530,16 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
              onMouseDown={handleButtonMouseDown}
              onTouchStart={handleButtonTouchStart}
            >
-             {/* Console-style Border Frame */}
+             {/* Simple Red Border Frame */}
              <div
                style={{
                  position: 'absolute',
                  zIndex: -1,
                  height: '100%',
                  width: '100%',
-                 border: '2px solid #00ff00',
-                 borderRadius: '4px',
-                 background: 'linear-gradient(45deg, #001100, #002200)',
-                 boxShadow: 'inset 0 0 10px rgba(0, 255, 0, 0.3)',
-               }}
-             />
-             
-             {/* Console Corner Brackets */}
-             <div
-               style={{
-                 position: 'absolute',
-                 top: '-2px',
-                 left: '-2px',
-                 width: '12px',
-                 height: '12px',
-                 borderTop: '2px solid #00ff00',
-                 borderLeft: '2px solid #00ff00',
-                 zIndex: 1,
-               }}
-             />
-             <div
-               style={{
-                 position: 'absolute',
-                 top: '-2px',
-                 right: '-2px',
-                 width: '12px',
-                 height: '12px',
-                 borderTop: '2px solid #00ff00',
-                 borderRight: '2px solid #00ff00',
-                 zIndex: 1,
-               }}
-             />
-             <div
-               style={{
-                 position: 'absolute',
-                 bottom: '-2px',
-                 left: '-2px',
-                 width: '12px',
-                 height: '12px',
-                 borderBottom: '2px solid #00ff00',
-                 borderLeft: '2px solid #00ff00',
-                 zIndex: 1,
-               }}
-             />
-             <div
-               style={{
-                 position: 'absolute',
-                 bottom: '-2px',
-                 right: '-2px',
-                 width: '12px',
-                 height: '12px',
-                 borderBottom: '2px solid #00ff00',
-                 borderRight: '2px solid #00ff00',
-                 zIndex: 1,
-               }}
-             />
-
-             {/* Console Status Indicators */}
-             <div
-               style={{
-                 position: 'absolute',
-                 top: '4px',
-                 left: '4px',
-                 width: '6px',
-                 height: '6px',
-                 background: '#00ff00',
-                 borderRadius: '0',
-                 animation: 'consoleBlink 1s ease-in-out infinite',
-                 zIndex: 1,
-               }}
-             />
-             <div
-               style={{
-                 position: 'absolute',
-                 top: '4px',
-                 right: '4px',
-                 width: '4px',
-                 height: '4px',
-                 background: '#ffff00',
-                 borderRadius: '0',
-                 animation: 'consoleBlink 1.5s ease-in-out infinite 0.5s',
-                 zIndex: 1,
+                 border: '3px solid #ff0000',
+                 borderRadius: '50%',
+                 background: 'transparent',
                }}
              />
 
@@ -626,9 +547,9 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
              <div
                style={{
                  position: 'relative',
-                 background: '#000000',
-                 border: '1px solid #00ff00',
-                 borderRadius: '4px',
+                 background: '#8B0000',
+                 border: 'none',
+                 borderRadius: '50%',
                  display: 'flex',
                  alignItems: 'center',
                  justifyContent: 'center',
@@ -636,12 +557,11 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                  height: '100%',
                  minWidth: BUTTON_SIZE,
                  minHeight: BUTTON_SIZE,
-                 boxShadow: 'inset 0 0 5px rgba(0, 255, 0, 0.2)',
+                 boxShadow: 'none',
                  fontFamily: 'monospace',
-                 animation: 'consolePulse 2s ease-in-out infinite alternate',
                }}
              >
-               {/* Console Text Label */}
+               {/* Simple Text Label */}
                <div
                  style={{
                    userSelect: 'none',
@@ -656,23 +576,23 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                >
                  <div
                    style={{
-                     color: '#00ff00',
+                     color: '#ffffff',
                      fontFamily: 'monospace',
                      fontSize: isMobile ? '8px' : '10px',
                      fontWeight: 'bold',
                      textTransform: 'uppercase',
                      letterSpacing: '1px',
-                     textShadow: '0 0 3px rgba(0, 255, 0, 0.8)',
+                     textShadow: 'none',
                    }}
                  >
                    AI
                  </div>
                  <div
                    style={{
-                     color: '#00ff00',
+                     color: '#ffffff',
                      fontFamily: 'monospace',
                      fontSize: isMobile ? '6px' : '7px',
-                     opacity: 0.7,
+                     opacity: 0.8,
                      textTransform: 'uppercase',
                      letterSpacing: '0.5px',
                    }}
@@ -681,20 +601,6 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                  </div>
                </div>
 
-               {/* Console Grid Pattern */}
-               <div
-                 style={{
-                   position: 'absolute',
-                   height: '100%',
-                   width: '100%',
-                   background: `
-                     linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px),
-                     linear-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px)
-                   `,
-                   backgroundSize: '8px 8px',
-                   opacity: 0.3,
-                 }}
-               />
              </div>
            </motion.div>
          )}
