@@ -812,7 +812,7 @@ svg {
 /* Import BEBAS font */
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
 
-/* AI Chat Assistant Styles */
+/* AI Chat Assistant Styles - Console Theme */
 .ai-chat-floating-container {
   position: fixed;
   bottom: 20px;
@@ -839,31 +839,64 @@ svg {
   transform: translateY(-2px);
 }
 
-/* AI Chat Button Styles */
+/* Console-style Animations */
+@keyframes consoleBlink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes consolePulse {
+  0% {
+    box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.2);
+  }
+  100% {
+    box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.4);
+  }
+}
+
+@keyframes consoleScan {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+/* AI Chat Button Styles - Console Theme */
 .ai-chat-button {
-  background: var(--gradient-primary);
-  color: var(--text-primary);
-  border: none;
-  border-radius: var(--radius-md);
+  background: #000000;
+  color: #00ff00;
+  border: 1px solid #00ff00;
+  border-radius: 4px;
   padding: var(--spacing-sm) var(--spacing-md);
-  font-family: var(--font-primary);
+  font-family: monospace;
   font-size: 0.875rem;
   font-weight: bold;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   cursor: pointer;
   transition: all var(--transition-normal);
-  box-shadow: var(--shadow-glow);
+  box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.2);
 }
 
 .ai-chat-button:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-glow-strong);
+  background: rgba(0, 255, 0, 0.1);
+  box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.4);
 }
 
 .ai-chat-button:active {
-  transform: translateY(0);
-  box-shadow: var(--shadow-glow);
+  background: rgba(0, 255, 0, 0.2);
+  box-shadow: inset 0 0 15px rgba(0, 255, 0, 0.6);
 }
 
 /* AI Chat Form Styles */
