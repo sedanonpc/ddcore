@@ -58,7 +58,6 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
   const [isLoading, setIsLoading] = React.useState(false)
   const [inputType, setInputType] = React.useState<'text' | 'voice'>('text')
   const [isRecording, setIsRecording] = React.useState(false)
-  const [responseType, setResponseType] = React.useState<'text' | 'voice'>('text')
   const [sessionId] = React.useState(() => `session_${Date.now()}_${Math.random()}`)
 
   // Calculate responsive dimensions
@@ -257,7 +256,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
   /**
    * Send message to Telegram-compatible backend
    */
-  const sendMessageToBackend = async (content: string, type: 'text' | 'voice', audioBlob?: Blob, requestVoiceResponse: boolean = false): Promise<ChatResponse> => {
+  const sendMessageToBackend = async (content: string, type: 'text' | 'voice', audioBlob?: Blob): Promise<ChatResponse> => {
     const user = blockchainService.getCurrentUser()
     if (!user) {
       throw new Error('User not authenticated')
@@ -269,11 +268,6 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
     formData.append('sessionId', sessionId)
     formData.append('userId', user.walletAddress)
     formData.append('username', user.username)
-    
-    // Add response_type parameter for voice responses
-    if (requestVoiceResponse) {
-      formData.append('response_type', 'voice')
-    }
     
     if (audioBlob) {
       formData.append('audio', audioBlob, 'voice-message.webm')
@@ -312,7 +306,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
     setMessages(prev => [...prev, userMessage])
 
     try {
-      const response = await sendMessageToBackend(message, 'text', undefined, responseType === 'voice')
+      const response = await sendMessageToBackend(message, 'text')
       
       // Add AI response to chat
       const aiMessage: ChatMessage = {
@@ -326,20 +320,8 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
 
       // Handle voice response
       if (response.type === 'voice' && response.audioUrl) {
-        try {
-          // Construct full URL to backend client
-          const fullAudioUrl = response.audioUrl.startsWith('http') 
-            ? response.audioUrl 
-            : `https://rice-opens-manufacturers-kernel.trycloudflare.com${response.audioUrl}`
-          
-          const audio = new Audio(fullAudioUrl)
-          audio.onerror = (error) => {
-            console.error('Audio playback error:', error)
-          }
-          await audio.play()
-        } catch (error) {
-          console.error('Error playing audio:', error)
-        }
+        const audio = new Audio(response.audioUrl)
+        audio.play()
       }
 
       // Clear input
@@ -420,7 +402,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
     setMessages(prev => [...prev, userMessage])
 
     try {
-      const response = await sendMessageToBackend('[Voice Message]', 'voice', audioBlob, responseType === 'voice')
+      const response = await sendMessageToBackend('[Voice Message]', 'voice', audioBlob)
       
       // Add AI response to chat
       const aiMessage: ChatMessage = {
@@ -434,20 +416,8 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
 
       // Handle voice response
       if (response.type === 'voice' && response.audioUrl) {
-        try {
-          // Construct full URL to backend client
-          const fullAudioUrl = response.audioUrl.startsWith('http') 
-            ? response.audioUrl 
-            : `https://rice-opens-manufacturers-kernel.trycloudflare.com${response.audioUrl}`
-          
-          const audio = new Audio(fullAudioUrl)
-          audio.onerror = (error) => {
-            console.error('Audio playback error:', error)
-          }
-          await audio.play()
-        } catch (error) {
-          console.error('Error playing audio:', error)
-        }
+        const audio = new Audio(response.audioUrl)
+        audio.play()
       }
     } catch (error) {
       console.error('Voice chat error:', error)
@@ -1012,45 +982,6 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                       borderRadius: '4px',
                       fontSize: '0.75rem',
                       cursor: 'pointer',
-                    }}
-                  >
-                    Voice
-                  </button>
-                </div>
-
-                {/* Response Type Toggle */}
-                <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-                  <span style={{ color: '#ffffff', fontSize: '0.75rem', alignSelf: 'center' }}>
-                    Response:
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setResponseType('text')}
-                    style={{
-                      padding: '4px 8px',
-                      background: responseType === 'text' ? '#DB0004' : 'transparent',
-                      border: '1px solid #DB0004',
-                      color: '#ffffff',
-                      borderRadius: '4px',
-                      fontSize: '0.7rem',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    Text
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setResponseType('voice')}
-                    style={{
-                      padding: '4px 8px',
-                      background: responseType === 'voice' ? '#DB0004' : 'transparent',
-                      border: '1px solid #DB0004',
-                      color: '#ffffff',
-                      borderRadius: '4px',
-                      fontSize: '0.7rem',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease'
                     }}
                   >
                     Voice
