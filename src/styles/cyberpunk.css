@@ -839,7 +839,7 @@ svg {
   transform: translateY(-2px);
 }
 
-/* Simple 2-Color Button Animations */
+/* Enhanced Button Animations */
 @keyframes simplePulse {
   0% {
     transform: scale(1);
@@ -849,9 +849,29 @@ svg {
   }
 }
 
-/* AI Chat Button Styles - Simple 2-Color Theme */
+@keyframes iconPulse {
+  0% {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+@keyframes borderGlow {
+  0% {
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.3), inset 0 0 15px rgba(255, 0, 0, 0.1);
+  }
+  100% {
+    box-shadow: 0 0 25px rgba(255, 0, 0, 0.5), inset 0 0 20px rgba(255, 0, 0, 0.2);
+  }
+}
+
+/* AI Chat Button Styles - Enhanced 2-Color Theme */
 .ai-chat-button {
-  background: #8B0000;
+  background: radial-gradient(circle at 30% 30%, #a00000, #8B0000, #6B0000);
   color: #ffffff;
   border: 3px solid #ff0000;
   border-radius: 50%;
@@ -863,15 +883,18 @@ svg {
   letter-spacing: 1px;
   cursor: pointer;
   transition: all var(--transition-normal);
-  box-shadow: none;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.3), inset 0 -2px 4px rgba(255, 0, 0, 0.1);
+  animation: borderGlow 3s ease-in-out infinite alternate;
 }
 
 .ai-chat-button:hover {
   transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(255, 0, 0, 0.5), inset 0 2px 6px rgba(0, 0, 0, 0.4), inset 0 -2px 6px rgba(255, 0, 0, 0.2);
 }
 
 .ai-chat-button:active {
   transform: scale(0.95);
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.4), inset 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 /* AI Chat Form Styles */

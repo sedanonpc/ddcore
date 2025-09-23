@@ -530,7 +530,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
              onMouseDown={handleButtonMouseDown}
              onTouchStart={handleButtonTouchStart}
            >
-             {/* Simple Red Border Frame */}
+             {/* Enhanced Red Border Frame */}
              <div
                style={{
                  position: 'absolute',
@@ -540,6 +540,22 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                  border: '3px solid #ff0000',
                  borderRadius: '50%',
                  background: 'transparent',
+                 boxShadow: '0 0 15px rgba(255, 0, 0, 0.3), inset 0 0 15px rgba(255, 0, 0, 0.1)',
+               }}
+             />
+             
+             {/* Inner Ring for Depth */}
+             <div
+               style={{
+                 position: 'absolute',
+                 zIndex: -1,
+                 height: 'calc(100% - 8px)',
+                 width: 'calc(100% - 8px)',
+                 top: '4px',
+                 left: '4px',
+                 border: '1px solid rgba(255, 0, 0, 0.4)',
+                 borderRadius: '50%',
+                 background: 'transparent',
                }}
              />
 
@@ -547,7 +563,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
              <div
                style={{
                  position: 'relative',
-                 background: '#8B0000',
+                 background: 'radial-gradient(circle at 30% 30%, #a00000, #8B0000, #6B0000)',
                  border: 'none',
                  borderRadius: '50%',
                  display: 'flex',
@@ -557,11 +573,12 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                  height: '100%',
                  minWidth: BUTTON_SIZE,
                  minHeight: BUTTON_SIZE,
-                 boxShadow: 'none',
+                 boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.3), inset 0 -2px 4px rgba(255, 0, 0, 0.1)',
                  fontFamily: 'monospace',
+                 transition: 'all 0.3s ease',
                }}
              >
-               {/* Simple Text Label */}
+               {/* Enhanced Icon with Visual Effects */}
                <div
                  style={{
                    userSelect: 'none',
@@ -570,35 +587,53 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                    display: 'flex',
                    alignItems: 'center',
                    justifyContent: 'center',
-                   flexDirection: 'column',
-                   gap: '2px',
+                   position: 'relative',
                  }}
                >
+                 {/* Main Icon */}
+                 <img
+                   src={aiIcon}
+                   alt="AI Assistant"
+                   style={{
+                     width: isMobile ? '28px' : '32px',
+                     height: isMobile ? '28px' : '32px',
+                     filter: 'brightness(0) invert(1) drop-shadow(0 0 3px rgba(255, 255, 255, 0.3))',
+                     objectFit: 'contain',
+                     transition: 'all 0.3s ease',
+                     zIndex: 2,
+                   }}
+                 />
+                 
+                 {/* Subtle Glow Effect */}
                  <div
                    style={{
-                     color: '#ffffff',
-                     fontFamily: 'monospace',
-                     fontSize: isMobile ? '8px' : '10px',
-                     fontWeight: 'bold',
-                     textTransform: 'uppercase',
-                     letterSpacing: '1px',
-                     textShadow: 'none',
+                     position: 'absolute',
+                     top: '50%',
+                     left: '50%',
+                     transform: 'translate(-50%, -50%)',
+                     width: isMobile ? '32px' : '36px',
+                     height: isMobile ? '32px' : '36px',
+                     background: 'radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%)',
+                     borderRadius: '50%',
+                     zIndex: 1,
+                     animation: 'iconPulse 2s ease-in-out infinite alternate',
                    }}
-                 >
-                   AI
-                 </div>
+                 />
+                 
+                 {/* Icon Background Ring */}
                  <div
                    style={{
-                     color: '#ffffff',
-                     fontFamily: 'monospace',
-                     fontSize: isMobile ? '6px' : '7px',
-                     opacity: 0.8,
-                     textTransform: 'uppercase',
-                     letterSpacing: '0.5px',
+                     position: 'absolute',
+                     top: '50%',
+                     left: '50%',
+                     transform: 'translate(-50%, -50%)',
+                     width: isMobile ? '40px' : '44px',
+                     height: isMobile ? '40px' : '44px',
+                     border: '1px solid rgba(255, 255, 255, 0.2)',
+                     borderRadius: '50%',
+                     zIndex: 0,
                    }}
-                 >
-                   CHAT
-                 </div>
+                 />
                </div>
 
              </div>
