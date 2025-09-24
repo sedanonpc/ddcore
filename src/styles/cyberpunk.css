@@ -8,17 +8,17 @@
   
   /* Background Colors */
   --bg-primary: #0a0a0f;
-  --bg-secondary: #1a1a2e;
-  --bg-tertiary: #16213e;
-  --bg-card: #1e2749;
-  --bg-modal: rgba(26, 26, 46, 0.95);
+  --bg-secondary: #1a0a0a;
+  --bg-tertiary: #2a0a0a;
+  --bg-card: #1a0a0a;
+  --bg-modal: rgba(26, 10, 10, 0.95);
   
-  /* Accent Colors */
-  --accent-cyan: #ff4d4d; /* repurposed as red accent */
+  /* Accent Colors - Red Theme */
+  --accent-cyan: #dc2626; /* Primary red accent */
   --accent-purple: #8b5cf6;
   --accent-pink: #f472b6;
   --accent-green: #10b981;
-  --accent-red: #DB0004;
+  --accent-red: #dc2626; /* Consistent red theme */
   --accent-orange: #f59e0b;
   
   /* Text Colors */
@@ -29,12 +29,12 @@
   
   /* Border Colors */
   --border-primary: #2d3748;
-  --border-accent: var(--accent-cyan);
-  --border-glow: rgba(239, 68, 68, 0.5);
+  --border-accent: var(--accent-red);
+  --border-glow: rgba(220, 38, 38, 0.5);
   
   /* Shadow Colors */
-  --shadow-glow: 0 0 20px rgba(239, 68, 68, 0.3);
-  --shadow-glow-strong: 0 0 30px rgba(239, 68, 68, 0.6);
+  --shadow-glow: 0 0 20px rgba(220, 38, 38, 0.3);
+  --shadow-glow-strong: 0 0 30px rgba(220, 38, 38, 0.6);
   --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3);
   
   /* Gradients */
@@ -1132,6 +1132,28 @@ svg {
   50% {
     transform: none;
     animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+/* Hide scrollbars but keep scrolling functionality */
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* WebKit */
+}
+
+/* Message slide-in animation */
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
