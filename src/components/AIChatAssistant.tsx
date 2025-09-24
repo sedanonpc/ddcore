@@ -1,5 +1,6 @@
 import React from "react"
 import { motion } from "framer-motion"
+import { BorderRotate } from "./ui/BorderRotate"
 import aiIcon from "../assets/images/ICON@10x.png"
 import { blockchainService } from "../services/blockchain"
 
@@ -24,6 +25,50 @@ interface ChatResponse {
   message: string
   type: 'text' | 'voice'
   audioUrl?: string
+}
+
+// Error Code System for Debugging
+enum ChatErrorCode {
+  // Authentication Errors (1xx)
+  USER_NOT_AUTHENTICATED = 'AUTH_001',
+  WALLET_NOT_CONNECTED = 'AUTH_002',
+  USER_DATA_MISSING = 'AUTH_003',
+  
+  // Backend Connection Errors (2xx)
+  BACKEND_NOT_RUNNING = 'BACKEND_001',
+  BACKEND_CONNECTION_TIMEOUT = 'BACKEND_002',
+  BACKEND_CORS_ERROR = 'BACKEND_003',
+  BACKEND_INVALID_RESPONSE = 'BACKEND_004',
+  BACKEND_SERVER_ERROR = 'BACKEND_005',
+  
+  // Input Validation Errors (3xx)
+  EMPTY_MESSAGE = 'INPUT_001',
+  MESSAGE_TOO_LONG = 'INPUT_002',
+  INVALID_MESSAGE_TYPE = 'INPUT_003',
+  
+  // Voice Recording Errors (4xx)
+  MICROPHONE_PERMISSION_DENIED = 'VOICE_001',
+  MICROPHONE_NOT_AVAILABLE = 'VOICE_002',
+  RECORDING_START_FAILED = 'VOICE_003',
+  RECORDING_STOP_FAILED = 'VOICE_004',
+  AUDIO_PROCESSING_FAILED = 'VOICE_005',
+  
+  // State Management Errors (5xx)
+  LOADING_STATE_STUCK = 'STATE_001',
+  RECORDING_STATE_STUCK = 'STATE_002',
+  FORM_STATE_INCONSISTENT = 'STATE_003',
+  
+  // Network Errors (6xx)
+  NETWORK_OFFLINE = 'NETWORK_001',
+  NETWORK_TIMEOUT = 'NETWORK_002',
+  NETWORK_UNKNOWN_ERROR = 'NETWORK_003'
+}
+
+interface ChatError {
+  code: ChatErrorCode
+  message: string
+  details?: any
+  timestamp: Date
 }
 
 /**
@@ -57,15 +102,59 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
   // Chat-specific state
   const [messages, setMessages] = React.useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = React.useState(false)
-  const [inputType, setInputType] = React.useState<'text' | 'voice'>('text')
   const [isRecording, setIsRecording] = React.useState(false)
   const [sessionId] = React.useState(() => `session_${Date.now()}_${Math.random()}`)
+  const [errors, setErrors] = React.useState<ChatError[]>([])
+  const [debugMode, setDebugMode] = React.useState(false)
+  const voiceRecordingTimerRef = React.useRef<NodeJS.Timeout | null>(null)
 
   // Calculate responsive dimensions
   const isMobile = windowSize.width < 768
   const FORM_WIDTH = isMobile ? 320 : 400
   const FORM_HEIGHT = isMobile ? 500 : 600
   const BUTTON_SIZE = isMobile ? 50 : 60
+
+
+  // Error handling utilities
+  const addError = React.useCallback((code: ChatErrorCode, message: string, details?: any) => {
+    const error: ChatError = {
+      code,
+      message,
+      details,
+      timestamp: new Date()
+    }
+    setErrors(prev => [...prev, error])
+    console.error(`[${code}] ${message}`, details)
+  }, [])
+
+  const clearErrors = React.useCallback(() => {
+    setErrors([])
+  }, [])
+
+  const getErrorMessage = React.useCallback((code: ChatErrorCode): string => {
+    switch (code) {
+      case ChatErrorCode.USER_NOT_AUTHENTICATED:
+        return 'Please connect your wallet to use the AI assistant'
+      case ChatErrorCode.BACKEND_NOT_RUNNING:
+        return 'Backend server is not running. Please start the LLM backend at http://127.0.0.1:8001'
+      case ChatErrorCode.BACKEND_CONNECTION_TIMEOUT:
+        return 'Connection to backend timed out. Check if server is running.'
+      case ChatErrorCode.BACKEND_CORS_ERROR:
+        return 'CORS error - backend server configuration issue'
+      case ChatErrorCode.MICROPHONE_PERMISSION_DENIED:
+        return 'Microphone permission denied. Please allow microphone access.'
+      case ChatErrorCode.MICROPHONE_NOT_AVAILABLE:
+        return 'Microphone not available on this device'
+      case ChatErrorCode.RECORDING_START_FAILED:
+        return 'Failed to start voice recording'
+      case ChatErrorCode.RECORDING_STOP_FAILED:
+        return 'Failed to stop voice recording'
+      case ChatErrorCode.NETWORK_OFFLINE:
+        return 'No internet connection available'
+      default:
+        return 'An unexpected error occurred'
+    }
+  }, [])
 
   // Load saved position from localStorage
   React.useEffect(() => {
@@ -89,12 +178,29 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
     setShowForm(false)
     textareaRef.current?.blur()
     
+    // Stop any active recording when closing
+    if (isRecording && mediaRecorderRef.current) {
+      try {
+        mediaRecorderRef.current.stop()
+        setIsRecording(false)
+      } catch (error) {
+        console.warn('Error stopping recording on close:', error)
+        setIsRecording(false)
+      }
+    }
+    
+    // Clear any pending voice recording timer
+    if (voiceRecordingTimerRef.current) {
+      clearTimeout(voiceRecordingTimerRef.current)
+      voiceRecordingTimerRef.current = null
+    }
+    
     // Reset button position to default (lower right)
     const isMobile = window.innerWidth < 768
     const defaultX = window.innerWidth - (isMobile ? 80 : 100)
     const defaultY = window.innerHeight - (isMobile ? 80 : 100)
     setPosition({ x: defaultX, y: defaultY })
-  }, [])
+  }, [isRecording])
 
 
 
@@ -324,13 +430,82 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
     return () => document.removeEventListener("mousedown", clickOutsideHandler)
   }, [showForm, triggerClose])
 
+  // Cleanup voice recording timers and state
+  React.useEffect(() => {
+    return () => {
+      // Clear any pending voice recording timer
+      if (voiceRecordingTimerRef.current) {
+        clearTimeout(voiceRecordingTimerRef.current)
+        voiceRecordingTimerRef.current = null
+      }
+      
+      // Stop any active recording
+      if (mediaRecorderRef.current && isRecording) {
+        try {
+          mediaRecorderRef.current.stop()
+        } catch (error) {
+          console.warn('Error stopping media recorder on cleanup:', error)
+        }
+      }
+    }
+  }, [isRecording])
+
+  // Additional cleanup when recording state changes
+  React.useEffect(() => {
+    if (!isRecording && mediaRecorderRef.current) {
+      // Ensure media recorder is properly stopped
+      try {
+        if (mediaRecorderRef.current.state === 'recording') {
+          mediaRecorderRef.current.stop()
+        }
+      } catch (error) {
+        console.warn('Error stopping media recorder on state change:', error)
+      }
+    }
+  }, [isRecording])
+
   /**
    * Send message to Telegram-compatible backend
    */
-  const sendMessageToBackend = async (content: string, type: 'text' | 'voice', audioBlob?: Blob): Promise<ChatResponse> => {
+  const sendMessageToBackend = React.useCallback(async (content: string, type: 'text' | 'voice', audioBlob?: Blob): Promise<ChatResponse> => {
+    // Validate user authentication
     const user = blockchainService.getCurrentUser()
     if (!user) {
-      throw new Error('User not authenticated')
+      addError(ChatErrorCode.USER_NOT_AUTHENTICATED, 'User not authenticated', { 
+        hasUser: false,
+        timestamp: new Date().toISOString()
+      })
+      throw new Error(`[${ChatErrorCode.USER_NOT_AUTHENTICATED}] User not authenticated`)
+    }
+
+    if (!user.walletAddress) {
+      addError(ChatErrorCode.USER_DATA_MISSING, 'User wallet address missing', {
+        hasWalletAddress: false,
+        hasUsername: !!user.username
+      })
+      throw new Error(`[${ChatErrorCode.USER_DATA_MISSING}] User wallet address missing`)
+    }
+
+    // Validate input
+    if (!content || content.trim().length === 0) {
+      addError(ChatErrorCode.EMPTY_MESSAGE, 'Empty message content', {
+        contentLength: content?.length || 0
+      })
+      throw new Error(`[${ChatErrorCode.EMPTY_MESSAGE}] Empty message content`)
+    }
+
+    if (content.length > 4000) {
+      addError(ChatErrorCode.MESSAGE_TOO_LONG, 'Message too long', {
+        contentLength: content.length,
+        maxLength: 4000
+      })
+      throw new Error(`[${ChatErrorCode.MESSAGE_TOO_LONG}] Message too long`)
+    }
+
+    // Check network connectivity
+    if (!navigator.onLine) {
+      addError(ChatErrorCode.NETWORK_OFFLINE, 'No internet connection')
+      throw new Error(`[${ChatErrorCode.NETWORK_OFFLINE}] No internet connection`)
     }
 
     const formData = new FormData()
@@ -344,25 +519,125 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
       formData.append('audio', audioBlob, 'voice-message.webm')
     }
 
-    const response = await fetch(`http://127.0.0.1:8001/chat`, {
-      method: 'POST',
-      body: formData
-    })
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
 
-    if (!response.ok) {
-      throw new Error(`Backend error: ${response.statusText}`)
+      const response = await fetch(`http://127.0.0.1:8001/chat`, {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal
+      })
+
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        const errorDetails = {
+          status: response.status,
+          statusText: response.statusText,
+          url: response.url,
+          timestamp: new Date().toISOString()
+        }
+
+        if (response.status >= 500) {
+          addError(ChatErrorCode.BACKEND_SERVER_ERROR, `Backend server error: ${response.status}`, errorDetails)
+          throw new Error(`[${ChatErrorCode.BACKEND_SERVER_ERROR}] Backend server error: ${response.status}`)
+        } else if (response.status === 0 || response.status === 404) {
+          addError(ChatErrorCode.BACKEND_NOT_RUNNING, 'Backend server not running', errorDetails)
+          throw new Error(`[${ChatErrorCode.BACKEND_NOT_RUNNING}] Backend server not running`)
+        } else {
+          addError(ChatErrorCode.BACKEND_INVALID_RESPONSE, `Invalid response: ${response.status}`, errorDetails)
+          throw new Error(`[${ChatErrorCode.BACKEND_INVALID_RESPONSE}] Invalid response: ${response.status}`)
+        }
+      }
+
+      const result = await response.json()
+      return result
+
+    } catch (error) {
+      const errorObj = error as Error
+      if (errorObj.name === 'AbortError') {
+        addError(ChatErrorCode.BACKEND_CONNECTION_TIMEOUT, 'Connection timeout', {
+          timeout: 10000,
+          timestamp: new Date().toISOString()
+        })
+        throw new Error(`[${ChatErrorCode.BACKEND_CONNECTION_TIMEOUT}] Connection timeout`)
+      } else if (errorObj instanceof TypeError && errorObj.message.includes('fetch')) {
+        addError(ChatErrorCode.BACKEND_NOT_RUNNING, 'Backend server not accessible', {
+          error: errorObj.message,
+          timestamp: new Date().toISOString()
+        })
+        throw new Error(`[${ChatErrorCode.BACKEND_NOT_RUNNING}] Backend server not accessible`)
+      } else if (errorObj.message.includes('CORS')) {
+        addError(ChatErrorCode.BACKEND_CORS_ERROR, 'CORS error', {
+          error: errorObj.message,
+          timestamp: new Date().toISOString()
+        })
+        throw new Error(`[${ChatErrorCode.BACKEND_CORS_ERROR}] CORS error`)
+      } else {
+        addError(ChatErrorCode.NETWORK_UNKNOWN_ERROR, 'Unknown network error', {
+          error: errorObj.message,
+          timestamp: new Date().toISOString()
+        })
+        throw new Error(`[${ChatErrorCode.NETWORK_UNKNOWN_ERROR}] Unknown network error`)
+      }
     }
+  }, [addError, sessionId])
 
-    return response.json()
-  }
+  /**
+   * Stop voice recording and send
+   */
+  const stopVoiceRecording = React.useCallback(() => {
+    console.log('Stopping voice recording...', { 
+      hasMediaRecorder: !!mediaRecorderRef.current, 
+      isRecording,
+      recorderState: mediaRecorderRef.current?.state 
+    })
+    
+    if (mediaRecorderRef.current && isRecording) {
+      try {
+        if (mediaRecorderRef.current.state === 'recording') {
+          mediaRecorderRef.current.stop()
+          console.log('MediaRecorder stop() called')
+        } else {
+          console.log('MediaRecorder not in recording state:', mediaRecorderRef.current.state)
+          setIsRecording(false)
+          mediaRecorderRef.current = null
+        }
+      } catch (error) {
+        const errorObj = error as Error
+        addError(ChatErrorCode.RECORDING_STOP_FAILED, 'Failed to stop recording', {
+          error: errorObj.message,
+          timestamp: new Date().toISOString()
+        })
+        setIsRecording(false)
+        mediaRecorderRef.current = null
+        console.error('Error stopping recording:', error)
+      }
+    } else if (isRecording) {
+      // State inconsistency detected - force reset
+      addError(ChatErrorCode.RECORDING_STATE_STUCK, 'Recording state inconsistent', {
+        hasMediaRecorder: !!mediaRecorderRef.current,
+        isRecording,
+        timestamp: new Date().toISOString()
+      })
+      setIsRecording(false)
+      mediaRecorderRef.current = null
+      console.warn('Force reset recording state due to inconsistency')
+    }
+  }, [isRecording, addError])
+
 
   /**
    * Handle text message submission
    */
-  const handleTextSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  const handleTextSubmit = React.useCallback(async (e?: React.FormEvent<HTMLFormElement>) => {
+    if (e) {
+      e.preventDefault()
+    }
+    
     const message = textareaRef.current?.value?.trim()
-    if (!message || isLoading) return
+    if (!message || isLoading || isRecording) return
 
     setIsLoading(true)
     
@@ -375,6 +650,11 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
       isUser: true
     }
     setMessages(prev => [...prev, userMessage])
+
+    // Clear input immediately to prevent double submission
+    if (textareaRef.current) {
+      textareaRef.current.value = ''
+    }
 
     try {
       const response = await sendMessageToBackend(message, 'text')
@@ -394,17 +674,18 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
         const audio = new Audio(response.audioUrl)
         audio.play()
       }
-
-      // Clear input
-      if (textareaRef.current) {
-        textareaRef.current.value = ''
-      }
     } catch (error) {
       console.error('Chat error:', error)
+      
+      // Extract error code if available
+      const errorObj = error as Error
+      const errorCode = errorObj.message.match(/\[([A-Z_]+)\]/)?.[1]
+      const userFriendlyMessage = errorCode ? getErrorMessage(errorCode as ChatErrorCode) : 'Sorry, I encountered an error. Please try again.'
+      
       // Add error message
       const errorMessage: ChatMessage = {
         id: `error_${Date.now()}`,
-        content: 'Sorry, I encountered an error. Please try again.',
+        content: userFriendlyMessage,
         type: 'text',
         timestamp: new Date(),
         isUser: false
@@ -413,51 +694,12 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
     } finally {
       setIsLoading(false)
     }
-  }
-
-  /**
-   * Start voice recording
-   */
-  const startVoiceRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const mediaRecorder = new MediaRecorder(stream)
-      mediaRecorderRef.current = mediaRecorder
-      audioChunksRef.current = []
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data)
-        }
-      }
-
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
-        await handleVoiceSubmission(audioBlob)
-        stream.getTracks().forEach(track => track.stop())
-      }
-
-      mediaRecorder.start()
-      setIsRecording(true)
-    } catch (error) {
-      console.error('Error starting recording:', error)
-    }
-  }
-
-  /**
-   * Stop voice recording and send
-   */
-  const stopVoiceRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop()
-      setIsRecording(false)
-    }
-  }
+  }, [isLoading, isRecording, sendMessageToBackend, getErrorMessage])
 
   /**
    * Handle voice message submission
    */
-  const handleVoiceSubmission = async (audioBlob: Blob) => {
+  const handleVoiceSubmission = React.useCallback(async (audioBlob: Blob) => {
     if (isLoading) return
 
     setIsLoading(true)
@@ -492,9 +734,15 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
       }
     } catch (error) {
       console.error('Voice chat error:', error)
+      
+      // Extract error code if available
+      const errorObj = error as Error
+      const errorCode = errorObj.message.match(/\[([A-Z_]+)\]/)?.[1]
+      const userFriendlyMessage = errorCode ? getErrorMessage(errorCode as ChatErrorCode) : 'Sorry, I encountered an error processing your voice message.'
+      
       const errorMessage: ChatMessage = {
         id: `error_${Date.now()}`,
-        content: 'Sorry, I encountered an error processing your voice message.',
+        content: userFriendlyMessage,
         type: 'text',
         timestamp: new Date(),
         isUser: false
@@ -503,13 +751,180 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [isLoading, sendMessageToBackend, getErrorMessage])
+
+  /**
+   * Start voice recording
+   */
+  const startVoiceRecording = React.useCallback(async () => {
+    // Prevent multiple recordings
+    if (isRecording) {
+      console.warn('Already recording, ignoring start request')
+      return
+    }
+
+    try {
+      // Check if media devices are available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        addError(ChatErrorCode.MICROPHONE_NOT_AVAILABLE, 'Media devices not available', {
+          hasMediaDevices: !!navigator.mediaDevices,
+          hasGetUserMedia: !!(navigator.mediaDevices?.getUserMedia)
+        })
+        throw new Error(`[${ChatErrorCode.MICROPHONE_NOT_AVAILABLE}] Media devices not available`)
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const mediaRecorder = new MediaRecorder(stream)
+      
+      // Clear any existing media recorder
+      if (mediaRecorderRef.current) {
+        try {
+          if (mediaRecorderRef.current.state === 'recording') {
+            mediaRecorderRef.current.stop()
+          }
+        } catch (e) {
+          console.warn('Error stopping existing media recorder:', e)
+        }
+      }
+      
+      mediaRecorderRef.current = mediaRecorder
+      audioChunksRef.current = []
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data)
+        }
+      }
+
+      mediaRecorder.onstop = async () => {
+        try {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+          await handleVoiceSubmission(audioBlob)
+        } catch (error) {
+          const errorObj = error as Error
+          addError(ChatErrorCode.AUDIO_PROCESSING_FAILED, 'Failed to process audio', {
+            error: errorObj.message,
+            blobSize: audioChunksRef.current.length
+          })
+        } finally {
+          stream.getTracks().forEach(track => track.stop())
+          setIsRecording(false)
+          mediaRecorderRef.current = null
+        }
+      }
+
+      mediaRecorder.onerror = (event) => {
+        const errorEvent = event as any // MediaRecorder error events have error property
+        addError(ChatErrorCode.RECORDING_START_FAILED, 'MediaRecorder error', {
+          error: errorEvent.error?.name || 'Unknown error'
+        })
+        setIsRecording(false)
+        stream.getTracks().forEach(track => track.stop())
+        mediaRecorderRef.current = null
+      }
+
+      mediaRecorder.start()
+      setIsRecording(true)
+      console.log('Voice recording started')
+    } catch (error) {
+      const errorObj = error as Error
+      setIsRecording(false)
+      mediaRecorderRef.current = null
+      
+      if (errorObj.name === 'NotAllowedError') {
+        addError(ChatErrorCode.MICROPHONE_PERMISSION_DENIED, 'Microphone permission denied', {
+          error: errorObj.message,
+          timestamp: new Date().toISOString()
+        })
+        throw new Error(`[${ChatErrorCode.MICROPHONE_PERMISSION_DENIED}] Microphone permission denied`)
+      } else if (errorObj.name === 'NotFoundError') {
+        addError(ChatErrorCode.MICROPHONE_NOT_AVAILABLE, 'No microphone found', {
+          error: errorObj.message,
+          timestamp: new Date().toISOString()
+        })
+        throw new Error(`[${ChatErrorCode.MICROPHONE_NOT_AVAILABLE}] No microphone found`)
+      } else {
+        addError(ChatErrorCode.RECORDING_START_FAILED, 'Failed to start recording', {
+          error: errorObj.message,
+          timestamp: new Date().toISOString()
+        })
+        throw new Error(`[${ChatErrorCode.RECORDING_START_FAILED}] Failed to start recording`)
+      }
+    }
+  }, [isRecording, addError, handleVoiceSubmission])
+
+
+
+  /**
+   * Handle text send button click
+   */
+  const handleTextSend = React.useCallback(() => {
+    const message = textareaRef.current?.value?.trim()
+    if (message && !isLoading && !isRecording) {
+      handleTextSubmit()
+    }
+  }, [isLoading, isRecording, handleTextSubmit])
+
+  /**
+   * Handle voice button mouse down - start voice recording
+   */
+  const handleVoiceMouseDown = React.useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (!isRecording && !isLoading) {
+      startVoiceRecording()
+    }
+  }, [isRecording, isLoading, startVoiceRecording])
+
+  /**
+   * Handle voice button mouse up - stop voice recording
+   */
+  const handleVoiceMouseUp = React.useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (isRecording) {
+      stopVoiceRecording()
+    }
+  }, [isRecording, stopVoiceRecording])
+
+  /**
+   * Handle voice button touch start - start voice recording
+   */
+  const handleVoiceTouchStart = React.useCallback((e: React.TouchEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (!isRecording && !isLoading) {
+      startVoiceRecording()
+    }
+  }, [isRecording, isLoading, startVoiceRecording])
+
+  /**
+   * Handle voice button touch end - stop voice recording
+   */
+  const handleVoiceTouchEnd = React.useCallback(() => {
+    if (isRecording) {
+      stopVoiceRecording()
+    }
+  }, [isRecording, stopVoiceRecording])
 
   const handleKeys = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Escape") triggerClose()
-    if (e.key === "Enter" && e.metaKey) {
+    if (e.key === "Escape") {
+      triggerClose()
+    } else if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
       e.preventDefault()
-      e.currentTarget.form?.requestSubmit()
+      const message = textareaRef.current?.value?.trim()
+      if (message && !isLoading && !isRecording) {
+        handleTextSubmit()
+      }
+    } else if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      const message = textareaRef.current?.value?.trim()
+      if (message && !isLoading && !isRecording) {
+        handleTextSubmit()
+      }
     }
   }
 
@@ -747,9 +1162,9 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
             justifyContent: 'center',
             whiteSpace: 'nowrap',
             userSelect: 'none',
-            background: '#2a0a0a',
+            background: '#1a1a1a',
             border: 'none',
-            borderTop: '1px solid #dc2626',
+            borderTop: '1px solid #374151',
             borderRadius: '0 0 8px 8px',
             fontFamily: 'monospace',
           }}>
@@ -765,14 +1180,13 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                   style={{
                     width: '6px',
                     height: '6px',
-                    background: '#dc2626',
+                    background: '#10b981',
                     borderRadius: '50%',
                     animation: 'consoleBlink 2s ease-in-out infinite',
-                    boxShadow: '0 0 6px rgba(220, 38, 38, 0.6)',
                   }}
                 />
                 <span style={{
-                  color: '#ff6b6b',
+                  color: '#9ca3af',
                   fontSize: '0.7rem',
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px',
@@ -859,12 +1273,13 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <button
                     type="button"
+                    onClick={() => setDebugMode(!debugMode)}
                     style={{
                       width: '20px',
                       height: '20px',
                       background: 'transparent',
                       border: 'none',
-                      color: '#ff6b6b',
+                      color: errors.length > 0 ? '#ff4444' : '#ff6b6b',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -875,8 +1290,9 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                     }}
                     onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
                     onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
+                    title={errors.length > 0 ? `${errors.length} errors detected` : 'Debug mode'}
                   >
-                    🔗
+                    {errors.length > 0 ? '⚠️' : '🔧'}
                   </button>
                   <button
                     type="button"
@@ -906,6 +1322,70 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                   </button>
                 </div>
               </div>
+
+              {/* Debug Panel */}
+              {debugMode && (
+                <div style={{
+                  padding: '12px',
+                  background: '#2a1a1a',
+                  borderBottom: '1px solid #dc2626',
+                  fontFamily: 'monospace',
+                  fontSize: '0.75rem',
+                  color: '#ff6b6b',
+                  maxHeight: '200px',
+                  overflowY: 'auto'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontWeight: 'bold' }}>DEBUG CONSOLE</span>
+                    <button
+                      onClick={clearErrors}
+                      style={{
+                        background: 'transparent',
+                        border: '1px solid #dc2626',
+                        color: '#ff6b6b',
+                        padding: '2px 6px',
+                        fontSize: '0.7rem',
+                        cursor: 'pointer',
+                        borderRadius: '3px'
+                      }}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  {errors.length === 0 ? (
+                    <div style={{ color: '#10b981' }}>✅ No errors detected</div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {errors.slice(-5).map((error, index) => (
+                        <div key={index} style={{
+                          padding: '4px',
+                          background: 'rgba(220, 38, 38, 0.1)',
+                          border: '1px solid rgba(220, 38, 38, 0.3)',
+                          borderRadius: '3px',
+                          fontSize: '0.7rem'
+                        }}>
+                          <div style={{ fontWeight: 'bold', color: '#ff4444' }}>
+                            [{error.code}] {error.message}
+                          </div>
+                          <div style={{ color: '#9ca3af', fontSize: '0.65rem' }}>
+                            {error.timestamp.toLocaleTimeString()}
+                          </div>
+                          {error.details && (
+                            <div style={{ color: '#d1d5db', fontSize: '0.65rem', marginTop: '2px' }}>
+                              {JSON.stringify(error.details, null, 2)}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      {errors.length > 5 && (
+                        <div style={{ color: '#9ca3af', fontSize: '0.65rem', textAlign: 'center' }}>
+                          ... and {errors.length - 5} more errors
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Messages Area */}
               <div style={{
@@ -958,8 +1438,8 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                         fontFamily: 'monospace',
                         lineHeight: '1.5',
                         boxShadow: message.isUser 
-                          ? '0 0 10px rgba(220, 38, 38, 0.4)' 
-                          : '0 0 10px rgba(153, 27, 27, 0.4)',
+                          ? '0 0 10px rgba(30, 58, 138, 0.3)' 
+                          : '0 0 10px rgba(127, 29, 29, 0.3)',
                         position: 'relative',
                       }}>
                         {!message.isUser && (
@@ -984,7 +1464,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                         {!message.isUser && (
                           <div style={{
                             fontSize: '0.7rem',
-                            color: '#ff9999',
+                            color: '#9ca3af',
                             marginBottom: '4px',
                           }}>
                             PREDICTION ENGINE v2.5
@@ -992,7 +1472,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                         )}
                         <div style={{
                           fontSize: '0.7rem',
-                          color: '#ff9999',
+                          color: '#6b7280',
                           textAlign: message.isUser ? 'right' : 'left',
                         }}>
                           {message.timestamp.toLocaleTimeString('en-US', { 
@@ -1010,13 +1490,13 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                         maxWidth: '85%',
                         padding: '12px 16px',
                         borderRadius: '8px',
-                        background: 'linear-gradient(135deg, #991b1b, #7f1d1d)',
-                        color: '#ffffff',
+                        background: 'linear-gradient(135deg, #7f1d1d, #991b1b)',
+                        color: '#ff6b6b',
                         fontSize: '0.875rem',
                         border: 'none',
                         fontFamily: 'monospace',
                         lineHeight: '1.5',
-                        boxShadow: '0 0 10px rgba(153, 27, 27, 0.4)',
+                        boxShadow: '0 0 10px rgba(127, 29, 29, 0.3)',
                         position: 'relative',
                       }}>
                         <div style={{
@@ -1026,10 +1506,10 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                           marginBottom: '8px',
                           fontSize: '0.75rem',
                         }}>
-                          <span style={{ color: '#ff6b6b', fontWeight: 'bold' }}>
+                          <span style={{ color: '#ffffff', fontWeight: 'bold' }}>
                             &gt;_ DareDevil
                           </span>
-                          <span style={{ color: '#ff9999', fontSize: '0.7rem' }}>
+                          <span style={{ color: '#d1d5db', fontSize: '0.7rem' }}>
                             NBA Analytics Expert
                           </span>
                         </div>
@@ -1038,14 +1518,14 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                         </div>
                         <div style={{
                           fontSize: '0.7rem',
-                          color: '#ff9999',
+                          color: '#9ca3af',
                           marginBottom: '4px',
                         }}>
                           PREDICTION ENGINE v2.5
                         </div>
                         <div style={{
                           fontSize: '0.7rem',
-                          color: '#ff9999',
+                          color: '#6b7280',
                         }}>
                           {new Date().toLocaleTimeString('en-US', { 
                             hour: '2-digit', 
@@ -1059,151 +1539,202 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                 </div>
               </div>
 
-              {/* Input Area */}
+              {/* Floating Input Interface */}
               <div style={{
-                padding: '16px',
-                background: '#1a0a0a',
-                borderTop: '1px solid #dc2626',
+                position: 'absolute',
+                bottom: '20px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 1000,
                 fontFamily: 'monospace',
               }}>
-                {/* Input Type Toggle */}
-                <div style={{
-                  display: 'flex',
-                  gap: '8px',
-                  marginBottom: '12px',
-                }}>
-                  <button
-                    type="button"
-                    onClick={() => setInputType('text')}
-                    style={{
-                      padding: '6px 12px',
-                      background: inputType === 'text' ? '#dc2626' : 'transparent',
-                      border: '1px solid #dc2626',
-                      color: inputType === 'text' ? '#ffffff' : '#ff6b6b',
-                      borderRadius: '4px',
-                      fontSize: '0.75rem',
-                      cursor: 'pointer',
-                      fontFamily: 'monospace',
-                      textTransform: 'uppercase',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    [TEXT]
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setInputType('voice')}
-                    style={{
-                      padding: '6px 12px',
-                      background: inputType === 'voice' ? '#dc2626' : 'transparent',
-                      border: '1px solid #dc2626',
-                      color: inputType === 'voice' ? '#ffffff' : '#ff6b6b',
-                      borderRadius: '4px',
-                      fontSize: '0.75rem',
-                      cursor: 'pointer',
-                      fontFamily: 'monospace',
-                      textTransform: 'uppercase',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    [VOICE]
-                  </button>
-                </div>
-
-                {/* Text Input */}
-                {inputType === 'text' && (
-                  <form onSubmit={handleTextSubmit} style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
-                    <textarea
-                      ref={textareaRef}
-                      placeholder="Ask DareDevil for betting advice..."
-                      disabled={isLoading}
-                      style={{
-                        flex: 1,
-                        height: '40px',
-                        resize: 'none',
-                        outline: 'none',
-                        background: '#2a0a0a',
-                        border: '1px solid #dc2626',
-                        borderRadius: '6px',
-                        color: '#ffffff',
-                        fontFamily: 'monospace',
-                        fontSize: '0.875rem',
-                        padding: '8px 12px',
-                        lineHeight: '1.4',
-                      }}
-                      onKeyDown={handleKeys}
-                    />
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        background: '#dc2626',
-                        border: 'none',
-                        borderRadius: '6px',
-                        color: '#ffffff',
-                        fontSize: '16px',
-                        cursor: isLoading ? 'not-allowed' : 'pointer',
-                        opacity: isLoading ? 0.6 : 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'all 0.2s ease',
-                        boxShadow: '0 0 8px rgba(220, 38, 38, 0.3)',
-                      }}
-                    >
-                      ✈️
-                    </button>
-                  </form>
-                )}
-
-                {/* Voice Input */}
-                {inputType === 'voice' && (
-                  <div style={{ textAlign: 'center' }}>
+                <BorderRotate
+                  animationMode="auto-rotate"
+                  animationSpeed={8}
+                  gradientColors={{
+                    primary: '#dc2626',
+                    secondary: '#ff6b6b',
+                    accent: '#fbbf24'
+                  }}
+                  backgroundColor="rgba(26, 10, 10, 0.95)"
+                  borderWidth={2}
+                  borderRadius={20}
+                  style={{
+                    backdropFilter: 'blur(20px)',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                  }}
+                >
+                  <div style={{
+                    display: 'flex',
+                    gap: '8px',
+                    alignItems: 'flex-end',
+                    padding: '12px',
+                    minWidth: '300px',
+                  }}>
+                    {/* Text Input */}
+                    <div style={{ flex: 1, position: 'relative' }}>
+                      <textarea
+                        ref={textareaRef}
+                        placeholder="DareDevil is your daddy..."
+                        disabled={isLoading}
+                        style={{
+                          width: '100%',
+                          minHeight: '40px',
+                          maxHeight: '100px',
+                          resize: 'none',
+                          outline: 'none',
+                          background: 'rgba(42, 10, 10, 0.8)',
+                          border: '1px solid rgba(220, 38, 38, 0.3)',
+                          borderRadius: '10px',
+                          color: '#ffffff',
+                          fontFamily: 'monospace',
+                          fontSize: '0.75rem',
+                          padding: '8px 12px',
+                          lineHeight: '1.4',
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.3)',
+                        }}
+                        onKeyDown={handleKeys}
+                        onFocus={(e) => {
+                          e.target.style.border = '1px solid #dc2626';
+                          e.target.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 0 3px rgba(220, 38, 38, 0.2)';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.border = '1px solid rgba(220, 38, 38, 0.3)';
+                          e.target.style.boxShadow = 'inset 0 2px 4px rgba(0, 0, 0, 0.3)';
+                        }}
+                      />
+                    </div>
+                    
+                    {/* Voice Button */}
                     <button
                       type="button"
-                      onMouseDown={startVoiceRecording}
-                      onMouseUp={stopVoiceRecording}
-                      onTouchStart={startVoiceRecording}
-                      onTouchEnd={stopVoiceRecording}
                       disabled={isLoading}
+                      onMouseDown={handleVoiceMouseDown}
+                      onMouseUp={handleVoiceMouseUp}
+                      onTouchStart={handleVoiceTouchStart}
+                      onTouchEnd={handleVoiceTouchEnd}
                       style={{
-                        width: '60px',
-                        height: '60px',
-                        borderRadius: '8px',
+                        width: '44px',
+                        height: '44px',
                         background: isRecording 
-                          ? 'linear-gradient(135deg, #dc2626, #b91c1c)' 
-                          : 'linear-gradient(135deg, #dc2626, #b91c1c)',
-                        border: 'none',
+                          ? 'linear-gradient(135deg, #ff6b6b 0%, #dc2626 50%, #b91c1c 100%)' 
+                          : 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '12px',
                         color: '#ffffff',
-                        fontSize: '16px',
                         cursor: isLoading ? 'not-allowed' : 'pointer',
                         opacity: isLoading ? 0.6 : 1,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        margin: '0 auto',
-                        fontFamily: 'monospace',
-                        fontWeight: 'bold',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                         boxShadow: isRecording 
-                          ? '0 0 15px rgba(220, 38, 38, 0.6)' 
-                          : '0 0 15px rgba(220, 38, 38, 0.4)',
-                        transition: 'all 0.2s ease',
+                          ? '0 0 20px rgba(255, 107, 107, 0.8), 0 4px 12px rgba(220, 38, 38, 0.4)' 
+                          : '0 4px 12px rgba(220, 38, 38, 0.3)',
+                        animation: isRecording ? 'recordingPulse 1.5s ease-in-out infinite' : 'none',
+                        transform: 'translateY(0)',
                       }}
+                      onMouseEnter={(e) => {
+                        if (!isLoading && !isRecording) {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 6px 20px rgba(220, 38, 38, 0.5)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isLoading && !isRecording) {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(220, 38, 38, 0.3)';
+                        }
+                      }}
+                      title={isRecording ? "Release to stop recording" : "Hold to record voice message"}
                     >
-                      {isRecording ? '⏹️' : '🎤'}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '100%',
+                        height: '100%',
+                      }}>
+                        {isRecording ? (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style={{ display: 'block' }}>
+                            <rect x="6" y="6" width="12" height="12" rx="3"/>
+                          </svg>
+                        ) : (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style={{ display: 'block' }}>
+                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                          </svg>
+                        )}
+                      </div>
                     </button>
-                    <p style={{
-                      color: '#ff6b6b',
-                      fontSize: '0.75rem',
-                      marginTop: '8px',
-                      fontFamily: 'monospace',
-                    }}>
-                      {isRecording ? 'Recording... Release to send' : 'Hold to record'}
-                    </p>
+
+                    {/* Send Button */}
+                    <button
+                      type="button"
+                      disabled={isLoading}
+                      onClick={handleTextSend}
+                      style={{
+                        width: '44px',
+                        height: '44px',
+                        background: 'rgba(220, 38, 38, 0.1)',
+                        border: '1px solid rgba(220, 38, 38, 0.3)',
+                        borderRadius: '12px',
+                        color: '#dc2626',
+                        cursor: isLoading ? 'not-allowed' : 'pointer',
+                        opacity: isLoading ? 0.6 : 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        boxShadow: '0 4px 12px rgba(220, 38, 38, 0.2)',
+                        transform: 'translateY(0)',
+                        backdropFilter: 'blur(10px)',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isLoading) {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.background = 'rgba(220, 38, 38, 0.2)';
+                          e.currentTarget.style.boxShadow = '0 6px 20px rgba(220, 38, 38, 0.4)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isLoading) {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.background = 'rgba(220, 38, 38, 0.1)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(220, 38, 38, 0.2)';
+                        }
+                      }}
+                      onMouseDown={(e) => {
+                        if (!isLoading) {
+                          e.currentTarget.style.background = 'rgba(220, 38, 38, 0.3)';
+                          e.currentTarget.style.boxShadow = '0 0 20px rgba(220, 38, 38, 0.8), inset 0 2px 4px rgba(220, 38, 38, 0.3)';
+                          e.currentTarget.style.transform = 'translateY(0) scale(0.95)';
+                        }
+                      }}
+                      onMouseUp={(e) => {
+                        if (!isLoading) {
+                          e.currentTarget.style.background = 'rgba(220, 38, 38, 0.2)';
+                          e.currentTarget.style.boxShadow = '0 6px 20px rgba(220, 38, 38, 0.4)';
+                          e.currentTarget.style.transform = 'translateY(-2px) scale(1)';
+                        }
+                      }}
+                      title="Send text message"
+                    >
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '100%',
+                        height: '100%',
+                      }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style={{ display: 'block' }}>
+                          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                      </div>
+                    </button>
                   </div>
-                )}
+                </BorderRotate>
               </div>
             </div>
           )}
