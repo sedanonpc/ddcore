@@ -3,6 +3,7 @@ import { motion } from "framer-motion"
 import { BorderRotate } from "./ui/BorderRotate"
 import aiIcon from "../assets/images/ICON@10x.png"
 import hellracerBanner from "../assets/images/hellracer banner 2.svg"
+import BlobBackground from "./BlobBackground"
 import { blockchainService } from "../services/blockchain"
 
 interface AIChatAssistantProps {
@@ -105,10 +106,12 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
   const [messages, setMessages] = React.useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = React.useState(false)
   const [isRecording, setIsRecording] = React.useState(false)
+  const [isVoiceDetected, setIsVoiceDetected] = React.useState(false)
   const [sessionId] = React.useState(() => `session_${Date.now()}_${Math.random()}`)
   const [errors, setErrors] = React.useState<ChatError[]>([])
   const [debugMode, setDebugMode] = React.useState(false)
   const voiceRecordingTimerRef = React.useRef<NodeJS.Timeout | null>(null)
+  const voiceDetectionTimerRef = React.useRef<NodeJS.Timeout | null>(null)
 
   // Calculate responsive dimensions with accessibility considerations
   const isMobile = windowSize.width < 768
@@ -230,6 +233,45 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
   React.useEffect(() => {
     scrollToBottom()
   }, [messages, scrollToBottom])
+
+  // Voice detection simulation during recording
+  React.useEffect(() => {
+    if (isRecording) {
+      // Simulate voice detection with random intervals
+      const simulateVoiceDetection = () => {
+        if (Math.random() > 0.3) { // 70% chance of voice detection
+          setIsVoiceDetected(true)
+          
+          // Clear previous timer
+          if (voiceDetectionTimerRef.current) {
+            clearTimeout(voiceDetectionTimerRef.current)
+          }
+          
+          // Reset voice detection after random duration
+          voiceDetectionTimerRef.current = setTimeout(() => {
+            setIsVoiceDetected(false)
+          }, Math.random() * 2000 + 500) // 0.5-2.5 seconds
+        }
+        
+        // Schedule next detection
+        setTimeout(simulateVoiceDetection, Math.random() * 1000 + 200) // 0.2-1.2 seconds
+      }
+      
+      simulateVoiceDetection()
+    } else {
+      // Stop voice detection when not recording
+      setIsVoiceDetected(false)
+      if (voiceDetectionTimerRef.current) {
+        clearTimeout(voiceDetectionTimerRef.current)
+      }
+    }
+    
+    return () => {
+      if (voiceDetectionTimerRef.current) {
+        clearTimeout(voiceDetectionTimerRef.current)
+      }
+    }
+  }, [isRecording])
 
   // Simple click handler for button - open chat
   const handleButtonClick = React.useCallback(() => {
@@ -1485,6 +1527,14 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                 />
               </div>
 
+              {/* 3D Blob Background - Fixed Position */}
+              <BlobBackground 
+                width={memoizedDimensions.FORM_WIDTH} 
+                height={memoizedDimensions.FORM_HEIGHT - 200}
+                isVisible={isRecording}
+                isVoiceDetected={isVoiceDetected}
+              />
+
               {/* Messages Area */}
               <div 
                 ref={messagesContainerRef}
@@ -1504,6 +1554,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                   marginBottom: '100px',
                   scrollBehavior: 'smooth',
                 }}>
+                
                 {/* Grid pattern overlay */}
                 <div style={{
                   position: 'absolute',
