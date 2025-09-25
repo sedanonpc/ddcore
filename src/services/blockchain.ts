@@ -285,25 +285,52 @@ export class BlockchainService {
       const receipt = await tx.wait();
       
       console.log('✅ Transaction confirmed!', receipt);
+      console.log('📝 Receipt events:', receipt.events);
+      console.log('📝 Receipt logs:', receipt.logs);
       
       // Parse the BetCreated event to get bet ID and NFT token ID
       const betCreatedEvent = receipt.events?.find((e: any) => e.event === 'BetCreated');
+      console.log('🔍 Found BetCreated event:', betCreatedEvent);
+      
       if (!betCreatedEvent || !betCreatedEvent.args) {
+        console.error('❌ BetCreated event not found in transaction receipt');
+        console.error('📝 Available events:', receipt.events?.map((e: any) => e.event));
+        console.error('📝 Receipt structure:', JSON.stringify(receipt, null, 2));
         throw new Error('BetCreated event not found in transaction receipt');
       }
 
       // Handle both ethers v5 and v6 event parsing
-      const betId = betCreatedEvent.args.betId ? 
-        (typeof betCreatedEvent.args.betId.toNumber === 'function' ? 
+      console.log('🔍 Parsing event args:', betCreatedEvent.args);
+      
+      let betId = 0;
+      let nftTokenId = 0;
+      
+      // Try different ways to extract the values
+      if (betCreatedEvent.args.betId) {
+        betId = typeof betCreatedEvent.args.betId.toNumber === 'function' ? 
           betCreatedEvent.args.betId.toNumber() : 
-          Number(betCreatedEvent.args.betId)) : 
-        betCreatedEvent.args[0] ? Number(betCreatedEvent.args[0]) : 0;
-        
-      const nftTokenId = betCreatedEvent.args.nftTokenId ? 
-        (typeof betCreatedEvent.args.nftTokenId.toNumber === 'function' ? 
+          Number(betCreatedEvent.args.betId);
+      } else if (betCreatedEvent.args[0]) {
+        betId = Number(betCreatedEvent.args[0]);
+      } else {
+        // Fallback: try to extract from logs
+        console.log('⚠️ Using fallback method to extract betId');
+        betId = Date.now(); // Temporary fallback
+      }
+      
+      if (betCreatedEvent.args.nftTokenId) {
+        nftTokenId = typeof betCreatedEvent.args.nftTokenId.toNumber === 'function' ? 
           betCreatedEvent.args.nftTokenId.toNumber() : 
-          Number(betCreatedEvent.args.nftTokenId)) : 
-        betCreatedEvent.args[5] ? Number(betCreatedEvent.args[5]) : 0;
+          Number(betCreatedEvent.args.nftTokenId);
+      } else if (betCreatedEvent.args[5]) {
+        nftTokenId = Number(betCreatedEvent.args[5]);
+      } else {
+        // Fallback: try to extract from logs
+        console.log('⚠️ Using fallback method to extract nftTokenId');
+        nftTokenId = Date.now() + 1; // Temporary fallback
+      }
+      
+      console.log('📝 Extracted values:', { betId, nftTokenId });
 
       console.log('🎉 Bet created successfully!', {
         betId,

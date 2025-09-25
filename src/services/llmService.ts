@@ -29,10 +29,17 @@ export class LLMService {
 
   constructor() {
     this.config = {
-      apiKey: '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',
-      model: 'deepseek/deepseek-chat',
+      apiKey: process.env.REACT_APP_OPENROUTER_API_KEY || '',
+      model: process.env.REACT_APP_OPENROUTER_MODEL || 'deepseek/deepseek-chat-v3.1:free',
       temperature: 0.1,
       maxTokens: 500
+    }
+    
+    // Validate API key
+    if (!this.config.apiKey) {
+      console.warn('⚠️ OPENROUTER_API_KEY not found in environment variables')
+    } else {
+      console.log('✅ OpenRouter LLM Service initialized with model:', this.config.model)
     }
   }
 

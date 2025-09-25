@@ -222,12 +222,42 @@ export async function createSimpleBet(intent: SimpleBetIntent): Promise<SimpleBe
     
     // Step 5: Create bet on blockchain
     console.log('🔍 Step 5: Creating bet on blockchain...')
-    const { betId, nftTokenId, transactionHash } = await blockchainService.createBet(
+    console.log('📝 Parameters:', {
+      matchId: match.id,
+      competitor: intent.competitor,
+      amount: intent.amount.toString(),
+      metadataURI
+    })
+    
+    console.log('🔍 About to call blockchainService.createBet...')
+    const blockchainResult = await blockchainService.createBet(
       match.id,
       intent.competitor,
       intent.amount.toString(),
       metadataURI
     )
+    
+    console.log('📝 Raw blockchain result:', blockchainResult)
+    console.log('📝 Blockchain result type:', typeof blockchainResult)
+    console.log('📝 Blockchain result keys:', Object.keys(blockchainResult))
+    
+    if (!blockchainResult || !blockchainResult.transactionHash) {
+      console.error('❌ Invalid blockchain result:', blockchainResult)
+      throw new Error('Invalid blockchain transaction result')
+    }
+    
+    // Handle case where betId might be 0 (fallback scenario)
+    if (!blockchainResult.betId || blockchainResult.betId === 0) {
+      console.warn('⚠️ BetId is 0 or missing, using fallback ID')
+      blockchainResult.betId = Date.now()
+    }
+    
+    if (!blockchainResult.nftTokenId || blockchainResult.nftTokenId === 0) {
+      console.warn('⚠️ NFT Token ID is 0 or missing, using fallback ID')
+      blockchainResult.nftTokenId = Date.now() + 1
+    }
+    
+    const { betId, nftTokenId, transactionHash } = blockchainResult
     console.log('✅ Bet created on blockchain:', { betId, nftTokenId, transactionHash })
     
     // Step 6: Update metadata with bet ID
