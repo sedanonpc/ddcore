@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { blockchainService } from '../services/blockchain';
 import { 
   detectMobileWalletConnection, 
@@ -67,16 +67,16 @@ const MobileWalletConnection: React.FC<MobileWalletConnectionProps> = ({
     setConnectionError(null);
 
     try {
-      console.log('ðŸ”— Starting wallet connection...');
+      console.log('Starting wallet connection...');
       const user = await blockchainService.connectWallet();
       
       if (onWalletConnected) {
         onWalletConnected(user);
       }
       
-      console.log('âœ… Wallet connected successfully');
+      console.log('� Wallet connected successfully');
     } catch (error: any) {
-      console.error('âŒ Wallet connection failed:', error);
+      console.error('❌ Wallet connection failed:', error);
       const errorMessage = error.message || 'Failed to connect wallet';
       setConnectionError(errorMessage);
       
@@ -103,7 +103,7 @@ const MobileWalletConnection: React.FC<MobileWalletConnectionProps> = ({
       <div className={`wallet-connection desktop ${className}`}>
         <div className="connection-card">
           <div className="connection-header">
-            <h3>ðŸ”— Connect MetaMask</h3>
+            <h3>Connect MetaMask</h3>
             <p>Connect your wallet to start betting</p>
           </div>
           
@@ -117,7 +117,7 @@ const MobileWalletConnection: React.FC<MobileWalletConnectionProps> = ({
           
           {connectionError && (
             <div className="error-message">
-              <p>âŒ {connectionError}</p>
+              <p>❌ {connectionError}</p>
             </div>
           )}
         </div>
@@ -130,7 +130,7 @@ const MobileWalletConnection: React.FC<MobileWalletConnectionProps> = ({
     <div className={`wallet-connection mobile ${className}`}>
       <div className="connection-card">
         <div className="connection-header">
-          <h3>ðŸ“± {instructions?.title || 'Connect Wallet'}</h3>
+          <h3>{instructions?.title || 'Connect Wallet'}</h3>
           <p>Connect your mobile wallet to start betting</p>
         </div>
 
@@ -138,7 +138,7 @@ const MobileWalletConnection: React.FC<MobileWalletConnectionProps> = ({
           // MetaMask is installed
           <div className="connection-content">
             <div className="wallet-info">
-              <div className="wallet-icon">ðŸ¦Š</div>
+              <div className="wallet-icon">MM</div>
               <div className="wallet-details">
                 <h4>MetaMask Detected</h4>
                 <p>Ready to connect</p>
@@ -166,7 +166,7 @@ const MobileWalletConnection: React.FC<MobileWalletConnectionProps> = ({
           // MetaMask not installed
           <div className="connection-content">
             <div className="wallet-info">
-              <div className="wallet-icon">ðŸ¦Š</div>
+              <div className="wallet-icon">MM</div>
               <div className="wallet-details">
                 <h4>MetaMask Not Found</h4>
                 <p>Download and install MetaMask first</p>
@@ -186,7 +186,7 @@ const MobileWalletConnection: React.FC<MobileWalletConnectionProps> = ({
               onClick={handleDownloadMetaMask}
               className="download-button secondary large"
             >
-              ðŸ“¥ Download MetaMask
+              Download MetaMask
             </button>
 
             <button 
@@ -202,10 +202,10 @@ const MobileWalletConnection: React.FC<MobileWalletConnectionProps> = ({
 
         {connectionError && (
           <div className="error-message">
-            <p>âŒ {connectionError}</p>
+            <p>❌ {connectionError}</p>
             {connectionError.includes('Redirecting to MetaMask') && (
               <p className="redirect-note">
-                ðŸ’¡ After connecting in MetaMask, return to this app to complete the connection.
+                After connecting in MetaMask, return to this app to complete the connection.
               </p>
             )}
           </div>

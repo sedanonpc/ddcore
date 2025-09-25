@@ -24,10 +24,17 @@ export interface MobileWalletDetection {
 export const isMobileDevice = (): boolean => {
   if (typeof window === 'undefined') return false;
   
+  // Check for touch capability and screen size
+  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const isSmallScreen = window.innerWidth <= 768;
+  
+  // Also check user agent for mobile keywords
   const userAgent = navigator.userAgent.toLowerCase();
   const mobileKeywords = ['android', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone'];
+  const isMobileUA = mobileKeywords.some(keyword => userAgent.includes(keyword));
   
-  return mobileKeywords.some(keyword => userAgent.includes(keyword));
+  // Only consider it mobile if it's actually a mobile device, not just a small desktop browser
+  return isMobileUA && (hasTouch || isSmallScreen);
 };
 
 /**
@@ -57,34 +64,27 @@ export const detectMobileMetaMask = (): WalletInfo | null => {
   
   const isMobile = isMobileDevice();
   
-  // Check for MetaMask mobile app
+  // Check for MetaMask in any browser (mobile or desktop)
   const ethereum = (window as any).ethereum;
   if (ethereum && ethereum.isMetaMask) {
     return {
       name: 'MetaMask',
-      icon: '🦊',
+      icon: 'MM',
       downloadUrl: isMobile ? 'https://metamask.io/download/' : 'https://metamask.io/download/',
       isInstalled: true,
       isMobile
     };
   }
   
-  // Check for MetaMask in mobile browsers
+  // For mobile devices, also check if MetaMask might be available via deep link
   if (isMobile) {
-    // Try to detect MetaMask mobile browser extension (rare but possible)
-    try {
-      if (ethereum && ethereum.isMetaMask) {
-        return {
-          name: 'MetaMask',
-          icon: '🦊',
-          downloadUrl: 'https://metamask.io/download/',
-          isInstalled: true,
-          isMobile: true
-        };
-      }
-    } catch (error) {
-      console.log('MetaMask detection error:', error);
-    }
+    return {
+      name: 'MetaMask',
+      icon: 'MM',
+      downloadUrl: 'https://metamask.io/download/',
+      isInstalled: false,
+      isMobile: true
+    };
   }
   
   return null;
@@ -143,7 +143,7 @@ export const getWalletDownloadLinks = (): WalletInfo[] => {
   const wallets: WalletInfo[] = [
     {
       name: 'MetaMask',
-      icon: '🦊',
+      icon: 'MM',
       downloadUrl: isMobile 
         ? (isIOS ? 'https://apps.apple.com/app/metamask/id1438144202' : 'https://play.google.com/store/apps/details?id=io.metamask')
         : 'https://metamask.io/download/',
@@ -157,7 +157,7 @@ export const getWalletDownloadLinks = (): WalletInfo[] => {
     wallets.push(
       {
         name: 'Trust Wallet',
-        icon: '🛡️',
+        icon: 'TW',
         downloadUrl: isIOS 
           ? 'https://apps.apple.com/app/trust-crypto-bitcoin-wallet/id1288339409'
           : 'https://play.google.com/store/apps/details?id=com.wallet.crypto.trustapp',
@@ -166,7 +166,7 @@ export const getWalletDownloadLinks = (): WalletInfo[] => {
       },
       {
         name: 'Coinbase Wallet',
-        icon: '🔵',
+        icon: 'CW',
         downloadUrl: isIOS
           ? 'https://apps.apple.com/app/coinbase-wallet/id1278383455'
           : 'https://play.google.com/store/apps/details?id=org.toshi',
