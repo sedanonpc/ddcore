@@ -1390,6 +1390,64 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
         />
       )}
 
+      {/* Hell Racer Banner - Grouped with Chat Window */}
+      {showForm && (
+        <motion.div
+          initial={{ opacity: 0, y: -50, scale: 0.8 }}
+          animate={{ 
+            opacity: 1, 
+            y: 0, 
+            scale: isDragging ? 1.1 : 1,
+            x: isDragging ? 0 : 0
+          }}
+          exit={{ opacity: 0, y: -50, scale: 0.8 }}
+          transition={{ 
+            duration: 0.4, 
+            ease: "easeInOut",
+            scale: { duration: 0.2, ease: "easeOut" }
+          }}
+          style={{
+            position: 'fixed',
+            top: position.y - (memoizedDimensions.isMobile ? 100 : 140), // Position above the chat window
+            left: position.x,
+            zIndex: 1001, // Above the chat window
+            width: memoizedDimensions.FORM_WIDTH, // Match chat window width
+            height: 'auto',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            pointerEvents: 'none', // Allow clicks to pass through
+            transformOrigin: 'center center',
+          }}
+        >
+          <motion.img 
+            src={hellracerBanner} 
+            alt="Hell Racer Banner"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ 
+              scale: isDragging ? 1.15 : 1,
+              opacity: 1,
+              filter: isDragging 
+                ? 'drop-shadow(0 8px 20px rgba(0, 0, 0, 0.6)) brightness(1.1)' 
+                : 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4))'
+            }}
+            transition={{ 
+              duration: 0.3, 
+              ease: "easeInOut",
+              scale: { duration: 0.2, ease: "easeOut" }
+            }}
+            style={{
+              width: '100%',
+              height: memoizedDimensions.isMobile ? '80px' : '120px', // Increased size
+              maxWidth: '100%',
+              objectFit: 'contain',
+              objectPosition: 'center',
+              transition: 'all 0.3s ease',
+            }}
+          />
+        </motion.div>
+      )}
+
       {/* AI Chat Assistant */}
       <div 
         className={`ai-chat-assistant ${className}`}
@@ -1847,33 +1905,6 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                 </div>
               )}
 
-              {/* Hellracer Banner Header */}
-              <div style={{
-                width: '100%',
-                height: 'auto',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                padding: memoizedDimensions.isMobile ? '4px 0' : '8px 0',
-                background: 'var(--bg-card)',
-                borderBottom: '1px solid rgba(220, 38, 38, 0.2)',
-                flexShrink: 0,
-                margin: 0,
-                overflow: 'hidden',
-              }}>
-                <img 
-                  src={hellracerBanner} 
-                  alt="Hellracer Banner"
-                  style={{
-                    width: '100%',
-                    height: 'auto',
-                    maxWidth: '100%',
-                    maxHeight: memoizedDimensions.isMobile ? '80px' : '120px',
-                    objectFit: 'cover',
-                    objectPosition: 'center',
-                  }}
-                />
-              </div>
 
               {/* 3D Blob Background - Fixed Position */}
               <BlobBackground 
@@ -1926,7 +1957,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                       style={{
                         display: 'flex',
                         justifyContent: message.isUser ? 'flex-end' : 'flex-start',
-                        marginBottom: '16px',
+                        marginBottom: '8px',
                       }}
                     >
                       <div style={{
@@ -1964,21 +1995,22 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                           </div>
                         )}
                         <div style={{ 
-                          marginBottom: '8px',
+                          marginBottom: '4px',
                           fontFamily: 'Consolas, "Courier New", monospace',
                           fontSize: '0.9rem',
-                          lineHeight: '1.4',
+                          lineHeight: '1.2',
                           whiteSpace: 'pre-wrap'
                         }}>
                           {renderMessageContent(message.content)}
                         </div>
                         {message.qrCodeUrl && (
                           <div style={{ 
-                            marginTop: '12px',
+                            marginTop: '20px',
                             display: 'flex',
-                            justifyContent: 'center'
+                            justifyContent: 'center',
+                            width: '100%'
                           }}>
-                            <QRCodeDisplay url={message.qrCodeUrl} size={100} />
+                            <QRCodeDisplay url={message.qrCodeUrl} size={200} />
                           </div>
                         )}
                         {!message.isUser && (
@@ -2323,6 +2355,23 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
           }}
         />
       )}
+
+      {/* CSS Animation for QR Code Pulse */}
+      <style>
+        {`
+          @keyframes pulse {
+            0% {
+              box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
+            }
+            70% {
+              box-shadow: 0 0 0 10px rgba(255, 0, 0, 0);
+            }
+            100% {
+              box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+            }
+          }
+        `}
+      </style>
     </>
   )
 }

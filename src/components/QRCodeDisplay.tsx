@@ -6,7 +6,7 @@ interface QRCodeDisplayProps {
   size?: number
 }
 
-const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ url, size = 120 }) => {
+const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ url, size = 200 }) => {
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string>('')
 
   useEffect(() => {
@@ -14,9 +14,9 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ url, size = 120 }) => {
       try {
         const dataURL = await QRCode.toDataURL(url, {
           width: size,
-          margin: 1,
+          margin: 2,
           color: {
-            dark: '#00ffff', // Cyan color to match theme
+            dark: '#ffffff', // White QR code
             light: '#000000' // Black background
           }
         })
@@ -37,13 +37,15 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ url, size = 120 }) => {
         width: size,
         height: size,
         background: '#000000',
-        border: '1px solid #00ffff',
+        border: '3px solid #ff0000',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: '#00ffff',
+        color: '#ffffff',
         fontSize: '0.8rem',
-        fontFamily: 'Consolas, "Courier New", monospace'
+        fontFamily: 'Consolas, "Courier New", monospace',
+        borderRadius: '8px',
+        animation: 'pulse 2s infinite'
       }}>
         Loading QR...
       </div>
@@ -55,25 +57,28 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ url, size = 120 }) => {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      gap: '8px'
+      gap: '12px',
+      width: '100%',
+      maxWidth: '300px'
     }}>
-      <img
-        src={qrCodeDataURL}
-        alt="QR Code"
-        style={{
-          width: size,
-          height: size,
-          border: '1px solid #00ffff',
-          borderRadius: '4px'
-        }}
-      />
       <div style={{
-        fontSize: '0.7rem',
-        color: 'var(--text-muted)',
-        fontFamily: 'Consolas, "Courier New", monospace',
-        textAlign: 'center'
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
       }}>
-        Scan to share bet
+        <img
+          src={qrCodeDataURL}
+          alt="QR Code"
+          style={{
+            width: size,
+            height: size,
+            border: '3px solid #ff0000',
+            borderRadius: '8px',
+            background: '#000000',
+            animation: 'pulse 2s infinite'
+          }}
+        />
       </div>
     </div>
   )

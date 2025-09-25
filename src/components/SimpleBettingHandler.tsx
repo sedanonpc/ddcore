@@ -55,17 +55,29 @@ export function useSimpleBettingHandler({ setMessages, setIsLoading }: SimpleBet
         
         const successMessage: ChatMessage = {
           id: `ai_${Date.now()}`,
-          content: `✅ **BET CREATED**\n\n` +
-            `📊 **${intent.amount} ${intent.currency}** on **${intent.competitor}**\n\n` +
-            `🔗 **TX:** ${shortenedTxHash}\n` +
-            `🔗 **Explorer:** https://scan.test2.btcs.network/tx/${result.transactionHash}\n\n` +
-            `📱 **Share:** ${result.shareableUrl}`,
+          content: `✅ BET CREATED\n\n` +
+            `📊 ${intent.amount} ${intent.currency} on ${intent.competitor}\n\n` +
+            `🔗 TX: https://scan.test2.btcs.network/tx/${result.transactionHash}\n\n` +
+            `🔗 Explorer: https://scan.test2.btcs.network/tx/${result.transactionHash}\n\n` +
+            `📱 Share: ${result.shareableUrl}`,
           type: 'text',
           timestamp: new Date(),
-          isUser: false,
-          qrCodeUrl: result.shareableUrl // Add QR code URL to the message
+          isUser: false
         }
         setMessages(prev => [...prev, successMessage])
+        
+        // Add separate QR code message
+        if (result.shareableUrl) {
+          const qrMessage: ChatMessage = {
+            id: `ai_qr_${Date.now()}`,
+            content: `📲 SCAN TO SHARE`,
+            type: 'text',
+            timestamp: new Date(),
+            isUser: false,
+            qrCodeUrl: result.shareableUrl
+          }
+          setMessages(prev => [...prev, qrMessage])
+        }
         
       } else {
         console.log('❌ Bet creation failed:', result.error)
