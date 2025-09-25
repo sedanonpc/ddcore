@@ -48,49 +48,24 @@ export function useSimpleBettingHandler({ setMessages, setIsLoading }: SimpleBet
       if (result.success) {
         console.log('✅ Bet created successfully!')
         
-        // Success message
+        // Create a clean, consolidated success message
+        const shortenedTxHash = result.transactionHash ? 
+          `${result.transactionHash.slice(0, 6)}...${result.transactionHash.slice(-4)}` : 
+          'N/A'
+        
         const successMessage: ChatMessage = {
           id: `ai_${Date.now()}`,
-          content: `✅ **BET CREATED SUCCESSFULLY!**\n\n🏆 **Bet ID:** ${result.betId}\n💎 **NFT Token ID:** ${result.nftTokenId}`,
+          content: `✅ **BET CREATED**\n\n` +
+            `📊 **${intent.amount} ${intent.currency}** on **${intent.competitor}**\n\n` +
+            `🔗 **TX:** ${shortenedTxHash}\n` +
+            `🔗 **Explorer:** https://scan.test2.btcs.network/tx/${result.transactionHash}\n\n` +
+            `📱 **Share:** ${result.shareableUrl}`,
           type: 'text',
           timestamp: new Date(),
-          isUser: false
+          isUser: false,
+          qrCodeUrl: result.shareableUrl // Add QR code URL to the message
         }
         setMessages(prev => [...prev, successMessage])
-        
-        // Transaction details
-        if (result.transactionHash) {
-          const txMessage: ChatMessage = {
-            id: `ai_tx_${Date.now()}`,
-            content: `🔗 **TRANSACTION CONFIRMED ON-CHAIN**\n\n📋 **Transaction ID:** ${result.transactionHash}\n\n🔍 **View on Core Explorer:**\nhttps://scan.test2.btcs.network/tx/${result.transactionHash}\n\n✨ Your bet is now permanently recorded on the blockchain!`,
-            type: 'text',
-            timestamp: new Date(),
-            isUser: false
-          }
-          setMessages(prev => [...prev, txMessage])
-        }
-        
-        // Sharing info
-        if (result.shareableUrl) {
-          const shareMessage: ChatMessage = {
-            id: `ai_share_${Date.now()}`,
-            content: `🎯 **BET ACCEPTANCE PAGE**\n\n📱 **Share this link with friends to accept your bet:**\n\n${result.shareableUrl}\n\n📲 **QR Code:** Available for easy sharing\n\n🎲 Once someone accepts, the bet will be locked and ready for resolution!`,
-            type: 'text',
-            timestamp: new Date(),
-            isUser: false
-          }
-          setMessages(prev => [...prev, shareMessage])
-        }
-        
-        // Next steps
-        const instructionsMessage: ChatMessage = {
-          id: `ai_instructions_${Date.now()}`,
-          content: `🎮 **WHAT HAPPENS NEXT?**\n\n1️⃣ Share the bet link with friends\n2️⃣ Wait for someone to accept the challenge\n3️⃣ Watch the match/game\n4️⃣ Bet resolves automatically based on results\n\n💰 Winner takes the full pot! Good luck! 🍀`,
-          type: 'text',
-          timestamp: new Date(),
-          isUser: false
-        }
-        setMessages(prev => [...prev, instructionsMessage])
         
       } else {
         console.log('❌ Bet creation failed:', result.error)

@@ -117,6 +117,7 @@ export interface ChatMessage {
   type: 'text' | 'voice';
   timestamp: Date;
   isUser: boolean;
+  qrCodeUrl?: string; // Optional QR code URL for bet sharing
 }
 
 export interface ChatError {

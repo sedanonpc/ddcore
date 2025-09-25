@@ -9,6 +9,7 @@ import { mcpService, BettingIntent, QuestionFlow, MCPResponse } from "../service
 import { llmService } from "../services/llmService"
 import ExpertAdviceModal from "./ExpertAdviceModal"
 import { useSimpleBettingHandler } from "./SimpleBettingHandler"
+import QRCodeDisplay from "./QRCodeDisplay"
 
 interface AIChatAssistantProps {
   className?: string
@@ -25,6 +26,7 @@ interface ChatMessage {
   type: 'text' | 'voice'
   timestamp: Date
   isUser: boolean
+  qrCodeUrl?: string // Optional QR code URL for bet sharing
 }
 
 interface ChatResponse {
@@ -126,29 +128,64 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
   // Simple betting handler (bypasses MCP complexity)
   const { handleSimpleBetRequest } = useSimpleBettingHandler({ setMessages, setIsLoading })
 
-  // Function to convert URLs in text to clickable links
+  // Function to convert URLs in text to clickable links with copy functionality
   const renderMessageContent = (content: string) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g
     const parts = content.split(urlRegex)
     
+    const copyToClipboard = async (text: string) => {
+      try {
+        await navigator.clipboard.writeText(text)
+        // You could add a toast notification here
+        console.log('Copied to clipboard:', text)
+      } catch (err) {
+        console.error('Failed to copy:', err)
+      }
+    }
+    
     return parts.map((part, index) => {
       if (urlRegex.test(part)) {
+        const isShortened = part.includes('...')
+        const displayText = isShortened ? part : part.length > 50 ? `${part.slice(0, 50)}...` : part
+        
         return (
-          <a
-            key={index}
-            href={part}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              color: 'var(--accent-cyan)',
-              textDecoration: 'underline',
-              cursor: 'pointer',
-              wordBreak: 'break-all'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {part}
-          </a>
+          <span key={index} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            <a
+              href={part}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: 'var(--accent-cyan)',
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                wordBreak: 'break-all',
+                fontFamily: 'Consolas, "Courier New", monospace'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {displayText}
+            </a>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                copyToClipboard(part)
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--accent-cyan)',
+                cursor: 'pointer',
+                fontSize: '0.8rem',
+                padding: '2px',
+                borderRadius: '2px',
+                display: 'inline-flex',
+                alignItems: 'center'
+              }}
+              title="Copy link"
+            >
+              📋
+            </button>
+          </span>
         )
       }
       return part
@@ -1926,9 +1963,24 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                             </span>
                           </div>
                         )}
-                        <div style={{ marginBottom: '8px' }}>
+                        <div style={{ 
+                          marginBottom: '8px',
+                          fontFamily: 'Consolas, "Courier New", monospace',
+                          fontSize: '0.9rem',
+                          lineHeight: '1.4',
+                          whiteSpace: 'pre-wrap'
+                        }}>
                           {renderMessageContent(message.content)}
                         </div>
+                        {message.qrCodeUrl && (
+                          <div style={{ 
+                            marginTop: '12px',
+                            display: 'flex',
+                            justifyContent: 'center'
+                          }}>
+                            <QRCodeDisplay url={message.qrCodeUrl} size={100} />
+                          </div>
+                        )}
                         {!message.isUser && (
                           <div style={{
                             fontSize: '0.7rem',
