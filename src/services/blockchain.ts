@@ -1,5 +1,11 @@
 import { ethers } from 'ethers';
 import { EthereumProvider, User } from '../types';
+import { 
+  detectMobileWalletConnection, 
+  connectMobileWallet, 
+  canConnectWallet,
+  isMobileDevice 
+} from '../utils/mobileWallet';
 
 // Import deployment info as fallback
 import deploymentInfo from '../deployment-info.json';
@@ -50,23 +56,60 @@ export class BlockchainService {
   ];
 
   /**
-   * Check if MetaMask is installed
+   * Check if MetaMask is installed (enhanced for mobile)
    */
   public isMetaMaskInstalled(): boolean {
-    return typeof window !== 'undefined' && !!(window as any).ethereum;
+    if (typeof window === 'undefined') return false;
+    
+    // Check for standard MetaMask detection
+    const hasEthereum = !!(window as any).ethereum;
+    if (hasEthereum) return true;
+    
+    // For mobile devices, check if we can connect via deep link
+    const isMobile = isMobileDevice();
+    if (isMobile) {
+      const detection = detectMobileWalletConnection();
+      return detection.hasWallet || detection.connectionMethod === 'deep-link';
+    }
+    
+    return false;
   }
 
   /**
-   * Connect wallet and initialize contracts
+   * Connect wallet and initialize contracts (enhanced for mobile)
    */
   public async connectWallet(): Promise<User> {
-    if (typeof window === 'undefined' || !(window as any).ethereum) {
-      throw new Error('MetaMask not detected. Please install MetaMask.');
-    }
-
-    const ethereum = (window as any).ethereum as EthereumProvider;
-
     try {
+      // Check if wallet connection is possible
+      if (!canConnectWallet()) {
+        throw new Error('Wallet connection not available. Please install MetaMask or use a compatible browser.');
+      }
+
+      // Handle mobile wallet connection
+      const isMobile = isMobileDevice();
+      if (isMobile) {
+        console.log('🔍 Mobile device detected, using mobile wallet connection...');
+        const mobileResult = await connectMobileWallet();
+        
+        if (!mobileResult.success) {
+          throw new Error(mobileResult.error || 'Failed to connect mobile wallet');
+        }
+        
+        // If deep link was used, user will return to the app after connecting
+        if (mobileResult.connectionMethod === 'deep-link') {
+          // Store a flag to check connection when user returns
+          localStorage.setItem('pendingWalletConnection', 'true');
+          throw new Error('Redirecting to MetaMask. Please return to this app after connecting.');
+        }
+      }
+
+      // Standard MetaMask connection
+      if (typeof window === 'undefined' || !(window as any).ethereum) {
+        throw new Error('MetaMask not detected. Please install MetaMask.');
+      }
+
+      const ethereum = (window as any).ethereum as EthereumProvider;
+
       // Request account access
       const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
       
@@ -96,6 +139,7 @@ export class BlockchainService {
 
       // Save user to localStorage
       localStorage.setItem('user', JSON.stringify(user));
+      localStorage.removeItem('pendingWalletConnection'); // Clear pending flag
 
       console.log('Wallet connected successfully:', user);
       return user;
@@ -172,6 +216,35 @@ export class BlockchainService {
   public getCurrentUser(): User | null {
     const userData = localStorage.getItem('user');
     return userData ? JSON.parse(userData) : null;
+  }
+
+  /**
+   * Check for pending wallet connection after deep link redirect
+   */
+  public async checkPendingConnection(): Promise<boolean> {
+    const hasPending = localStorage.getItem('pendingWalletConnection');
+    if (!hasPending) return false;
+
+    try {
+      console.log('🔍 Checking for pending wallet connection...');
+      
+      // Wait a moment for MetaMask to initialize
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Try to restore connection
+      const restored = await this.restoreConnection();
+      if (restored) {
+        localStorage.removeItem('pendingWalletConnection');
+        console.log('✅ Pending connection restored successfully');
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('❌ Failed to restore pending connection:', error);
+      localStorage.removeItem('pendingWalletConnection');
+      return false;
+    }
   }
 
   /**

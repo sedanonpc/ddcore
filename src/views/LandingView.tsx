@@ -5,9 +5,11 @@ import { Squares } from '../components/Squares';
 import FeaturedMatchCard from '../components/FeaturedMatchCard';
 import F1QualifyingResults from '../components/F1QualifyingResults';
 import F1MediaPlayer from '../components/F1MediaPlayer';
+import MobileWalletConnection from '../components/MobileWalletConnection';
 import { ReactComponent as AgentBannerTitle } from '../assets/images/Agent hellracer banner title.svg';
 import { matchDataService } from '../utils/matchData';
-import { Match, League, Competitor } from '../types';
+import { Match, League, Competitor, User } from '../types';
+import { isMobileDevice } from '../utils/mobileWallet';
 import '../styles/cyberpunk.css';
 
 /**
@@ -18,12 +20,37 @@ import '../styles/cyberpunk.css';
 const LandingView: React.FC = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
   const [featuredMatch, setFeaturedMatch] = useState<{
     match: Match;
     league: League;
     competitors: Record<string, Competitor>;
   } | null>(null);
   const navigate = useNavigate();
+
+  /**
+   * Detect mobile device and check for pending connections
+   */
+  useEffect(() => {
+    setIsMobile(isMobileDevice());
+    
+    // Check for pending wallet connection (after deep link redirect)
+    const checkPendingConnection = async () => {
+      try {
+        const hasPending = await blockchainService.checkPendingConnection();
+        if (hasPending) {
+          const user = blockchainService.getCurrentUser();
+          if (user) {
+            navigate('/matches');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to check pending connection:', error);
+      }
+    };
+
+    checkPendingConnection();
+  }, [navigate]);
 
   /**
    * Load the next upcoming match for the featured section
@@ -105,7 +132,26 @@ const LandingView: React.FC = () => {
 
 
   /**
-   * Handle MetaMask wallet connection
+   * Handle wallet connection success
+   */
+  const handleWalletConnected = (user: User) => {
+    console.log('Wallet connected successfully:', user);
+    setIsConnecting(false);
+    setError(null);
+    navigate('/matches');
+  };
+
+  /**
+   * Handle wallet connection failure
+   */
+  const handleConnectionFailed = (errorMessage: string) => {
+    console.error('Wallet connection failed:', errorMessage);
+    setError(errorMessage);
+    setIsConnecting(false);
+  };
+
+  /**
+   * Handle MetaMask wallet connection (legacy desktop method)
    * Generates username and stores user data in localStorage
    */
   const handleConnectWallet = async () => {
@@ -270,81 +316,91 @@ const LandingView: React.FC = () => {
             </p>
           </div>
 
-          {/* Connection button */}
+          {/* Wallet Connection */}
           <div className="landing-actions">
-            <button
-              className="btn btn-primary btn-large glow-strong"
-              onClick={handleConnectWallet}
-              disabled={isConnecting}
-              style={{
-                fontSize: '1.25rem',
-                padding: 'var(--spacing-lg) var(--spacing-2xl)',
-                minWidth: '280px',
-                position: 'relative'
-              }}
-            >
-              {isConnecting ? (
-                <>
-                  <span className="loading-spinner" style={{ marginRight: 'var(--spacing-sm)' }} />
-                  Connecting...
-                </>
-              ) : (
-                'Login with MetaMask'
-              )}
-            </button>
-          </div>
-
-          {/* Error message */}
-          {error && (
-            <div 
-              className="error-message mt-lg"
-              style={{
-                background: 'rgba(239, 68, 68, 0.1)',
-                border: '1px solid var(--accent-red)',
-                borderRadius: 'var(--radius-md)',
-                padding: 'var(--spacing-md)',
-                color: 'var(--accent-red)',
-                maxWidth: '400px',
-                margin: '0 auto'
-              }}
-            >
-              <p style={{ margin: 0, fontSize: '0.875rem' }}>
-                {error}
-              </p>
-            </div>
-          )}
-
-          {/* MetaMask installation hint */}
-          {!blockchainService.isMetaMaskInstalled() && (
-            <div 
-              className="metamask-hint mt-lg"
-              style={{
-                background: 'rgba(0, 210, 255, 0.1)',
-                border: '1px solid var(--accent-cyan)',
-                borderRadius: 'var(--radius-md)',
-                padding: 'var(--spacing-md)',
-                color: 'var(--text-secondary)',
-                maxWidth: '400px',
-                margin: '0 auto'
-              }}
-            >
-              <p style={{ margin: 0, fontSize: '0.875rem' }}>
-                Don't have MetaMask? 
-                <a 
-                  href="https://metamask.io/download/"
-                  target="_blank"
-                  rel="noopener noreferrer"
+            {isMobile ? (
+              <MobileWalletConnection
+                onWalletConnected={handleWalletConnected}
+                onConnectionFailed={handleConnectionFailed}
+                className="mobile-wallet-connection"
+              />
+            ) : (
+              <>
+                <button
+                  className="btn btn-primary btn-large glow-strong"
+                  onClick={handleConnectWallet}
+                  disabled={isConnecting}
                   style={{
-                    color: 'var(--accent-cyan)',
-                    textDecoration: 'none',
-                    marginLeft: 'var(--spacing-xs)'
+                    fontSize: '1.25rem',
+                    padding: 'var(--spacing-lg) var(--spacing-2xl)',
+                    minWidth: '280px',
+                    position: 'relative'
                   }}
                 >
-                  Install it here
-                </a>
-              </p>
-            </div>
-          )}
+                  {isConnecting ? (
+                    <>
+                      <span className="loading-spinner" style={{ marginRight: 'var(--spacing-sm)' }} />
+                      Connecting...
+                    </>
+                  ) : (
+                    'Login with MetaMask'
+                  )}
+                </button>
+
+                {/* Error message */}
+                {error && (
+                  <div 
+                    className="error-message mt-lg"
+                    style={{
+                      background: 'rgba(239, 68, 68, 0.1)',
+                      border: '1px solid var(--accent-red)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: 'var(--spacing-md)',
+                      color: 'var(--accent-red)',
+                      maxWidth: '400px',
+                      margin: '0 auto'
+                    }}
+                  >
+                    <p style={{ margin: 0, fontSize: '0.875rem' }}>
+                      {error}
+                    </p>
+                  </div>
+                )}
+
+                {/* MetaMask installation hint */}
+                {!blockchainService.isMetaMaskInstalled() && (
+                  <div 
+                    className="metamask-hint mt-lg"
+                    style={{
+                      background: 'rgba(0, 210, 255, 0.1)',
+                      border: '1px solid var(--accent-cyan)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: 'var(--spacing-md)',
+                      color: 'var(--text-secondary)',
+                      maxWidth: '400px',
+                      margin: '0 auto'
+                    }}
+                  >
+                    <p style={{ margin: 0, fontSize: '0.875rem' }}>
+                      Don't have MetaMask? 
+                      <a 
+                        href="https://metamask.io/download/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          color: 'var(--accent-cyan)',
+                          textDecoration: 'none',
+                          marginLeft: 'var(--spacing-xs)'
+                        }}
+                      >
+                        Install it here
+                      </a>
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
 
           {/* Network information */}
           <div 
