@@ -265,7 +265,7 @@ const LandingView: React.FC = () => {
                 margin: '0 auto var(--spacing-xl) auto'
               }}
             >
-              The ultimate Web3 sports betting experience. 
+              
               Dare to predict. Dare to win. <span style={{ color: '#FFD700' }}>Dare to be legendary.</span>
             </p>
           </div>

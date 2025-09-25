@@ -128,6 +128,13 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
   // Simple betting handler (bypasses MCP complexity)
   const { handleSimpleBetRequest } = useSimpleBettingHandler({ setMessages, setIsLoading })
 
+  // Prediction Mode state
+  const [predictionMode, setPredictionMode] = React.useState(false)
+  
+  // Backend connection state
+  const [backendConnected, setBackendConnected] = React.useState(false)
+  const [connectionStatus, setConnectionStatus] = React.useState<'connecting' | 'connected' | 'disconnected'>('disconnected')
+
   // Function to convert URLs in text to clickable links with copy functionality
   const renderMessageContent = (content: string) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g
@@ -249,6 +256,37 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
         return '📏 Message is too long. Please keep it under 4000 characters.'
       default:
         return '❌ An unexpected error occurred. Please try again.'
+    }
+  }, [])
+
+  // Check backend connection status
+  const checkBackendConnection = React.useCallback(async () => {
+    setConnectionStatus('connecting')
+    
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 3000) // 3 second timeout for health check
+      
+      const response = await fetch('http://127.0.0.1:8001/health', {
+        method: 'GET',
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      
+      clearTimeout(timeoutId)
+      
+      if (response.ok) {
+        setBackendConnected(true)
+        setConnectionStatus('connected')
+      } else {
+        setBackendConnected(false)
+        setConnectionStatus('disconnected')
+      }
+    } catch (error) {
+      setBackendConnected(false)
+      setConnectionStatus('disconnected')
     }
   }, [])
 
@@ -497,6 +535,17 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
     }
   }, [])
 
+  // Check backend connection on mount and periodically
+  React.useEffect(() => {
+    // Initial check
+    checkBackendConnection()
+    
+    // Set up periodic checks every 10 seconds
+    const interval = setInterval(checkBackendConnection, 10000)
+    
+    return () => clearInterval(interval)
+  }, [checkBackendConnection])
+
   // Save position to localStorage
   const savePosition = React.useCallback((newPosition: Position) => {
     localStorage.setItem('ai-chat-position', JSON.stringify(newPosition))
@@ -594,13 +643,17 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
       setPosition({ x: centerX, y: centerY })
       
       setShowForm(true)
+      
+      // Check backend connection when opening chat
+      checkBackendConnection()
+      
       setTimeout(() => {
         textareaRef.current?.focus()
       })
     }
     // Reset the wasDragging flag after click
     wasDraggingRef.current = false
-  }, [showForm, memoizedDimensions.FORM_WIDTH, memoizedDimensions.FORM_HEIGHT])
+  }, [showForm, memoizedDimensions.FORM_WIDTH, memoizedDimensions.FORM_HEIGHT, checkBackendConnection])
 
   // Mouse down handler for button - start drag timer
   const handleButtonMouseDown = React.useCallback((e: React.MouseEvent) => {
@@ -1037,17 +1090,28 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
     setMessages(prev => [...prev, userMessage])
 
     try {
-      // Check if this is a betting-related query (MCP routing)
+      // Check if prediction mode is enabled and if this is a betting-related query
       const bettingKeywords = ['bet', 'wager', 'gamble', 'stake', 'risk', 'lakers', 'celtics', 'warriors', 'bulls', 'chiefs', 'eagles', 'cowboys', 'max verstappen', 'lewis hamilton']
       const isBettingQuery = bettingKeywords.some(keyword =>
         message.toLowerCase().includes(keyword.toLowerCase())
       )
 
-      if (isBettingQuery) {
-        // Use simple betting handler instead of complex MCP flow
-        console.log('🎯 Using simple betting handler')
+      if (predictionMode && isBettingQuery) {
+        // Use simple betting handler when prediction mode is enabled
+        console.log('🎯 Prediction Mode: Using simple betting handler')
         await handleSimpleBetRequest(message)
         return // Don't continue to LLM fallback
+      } else if (predictionMode && !isBettingQuery) {
+        // Prediction mode is on but not a betting query - show mode-specific response
+        const modeMessage: ChatMessage = {
+          id: `ai_${Date.now()}`,
+          content: `🎯 **PREDICTION MODE ACTIVE**\n\nI'm currently in prediction mode and ready to help you create bets! Try asking me about:\n\n• "I want to bet on the Lakers"\n• "Create a bet for Max Verstappen to win"\n• "Bet 50 USDC on the Warriors"\n\nTurn off prediction mode for general chat assistance.`,
+          type: 'text',
+          timestamp: new Date(),
+          isUser: false
+        }
+        setMessages(prev => [...prev, modeMessage])
+        return
       } else {
         // Regular chat message - try LLM first, then fallback to backend
         try {
@@ -1448,6 +1512,105 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
         </motion.div>
       )}
 
+      {/* Prediction Mode Slider - Integrated with Chat Window */}
+      {showForm && (
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.8 }}
+          animate={{ 
+            opacity: 1, 
+            y: 0, 
+            scale: isDragging ? 1.05 : 1,
+          }}
+          exit={{ opacity: 0, y: 20, scale: 0.8 }}
+          transition={{ 
+            duration: 0.4, 
+            ease: "easeInOut",
+            delay: 0.2,
+            scale: { duration: 0.2, ease: "easeOut" }
+          }}
+          style={{
+            position: 'fixed',
+            top: position.y + memoizedDimensions.FORM_HEIGHT + 15, // Position below the chat window
+            left: position.x + memoizedDimensions.FORM_WIDTH - 120, // Position from left edge of chat window
+            zIndex: 1001, // Above the chat window
+            pointerEvents: 'auto', // Allow interaction
+            transformOrigin: 'center center',
+          }}
+        >
+          <div 
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              setPredictionMode(!predictionMode)
+            }}
+            onMouseDown={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+            }}
+            onTouchStart={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: memoizedDimensions.isMobile ? '4px' : '8px',
+              background: 'rgba(15, 15, 15, 0.9)',
+              border: `1px solid ${predictionMode ? '#ffd700' : 'rgba(220, 38, 38, 0.2)'}`,
+              borderRadius: '8px',
+              padding: memoizedDimensions.isMobile ? '3px 6px' : '6px 12px',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              boxShadow: predictionMode 
+                ? '0 4px 16px rgba(255, 215, 0, 0.4)' 
+                : '0 4px 16px rgba(0, 0, 0, 0.2)',
+              transition: 'all 0.3s ease',
+              cursor: 'pointer',
+              position: 'relative',
+              minWidth: memoizedDimensions.isMobile ? '70px' : '100px',
+              width: 'fit-content',
+            }}>
+              
+              {/* Mode Label */}
+              <div style={{
+                fontSize: memoizedDimensions.isMobile ? '0.6rem' : '0.7rem',
+                color: predictionMode ? '#ffd700' : 'var(--text-muted)',
+                fontFamily: 'Consolas, "Courier New", monospace',
+                fontWeight: 'bold',
+                textShadow: predictionMode ? '0 0 4px rgba(255, 215, 0, 0.5)' : 'none',
+                letterSpacing: memoizedDimensions.isMobile ? '0.1px' : '0.3px',
+                whiteSpace: 'nowrap',
+              }}>
+                {memoizedDimensions.isMobile ? 'PRED' : 'PREDICTION'}
+              </div>
+              
+              {/* Minimalist Toggle */}
+              <div style={{
+                position: 'relative',
+                width: memoizedDimensions.isMobile ? '24px' : '28px',
+                height: memoizedDimensions.isMobile ? '12px' : '14px',
+                background: predictionMode ? '#ffd700' : 'rgba(60, 60, 60, 0.6)',
+                borderRadius: '7px',
+                transition: 'all 0.3s ease',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+              }}>
+                {/* Slider Handle */}
+                <div style={{
+                  position: 'absolute',
+                  top: '1px',
+                  left: predictionMode ? (memoizedDimensions.isMobile ? '13px' : '15px') : '1px',
+                  width: memoizedDimensions.isMobile ? '10px' : '12px',
+                  height: memoizedDimensions.isMobile ? '10px' : '12px',
+                  background: '#ffffff',
+                  borderRadius: '50%',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
+                }} />
+              </div>
+            </div>
+        </motion.div>
+      )}
+
       {/* AI Chat Assistant */}
       <div 
         className={`ai-chat-assistant ${className}`}
@@ -1764,16 +1927,105 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                 {/* Left side - Terminal Title */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <span style={{
-                    color: 'var(--accent-cyan)',
+                    color: predictionMode ? '#ffffff' : 'var(--accent-cyan)',
                     fontFamily: 'var(--font-primary)',
                     fontSize: '0.875rem',
                     fontWeight: 'normal',
                     textTransform: 'none',
                     letterSpacing: '0.5px',
-                    textShadow: '0 0 10px var(--accent-cyan, rgba(255, 107, 107, 0.5))',
+                    textShadow: predictionMode 
+                      ? '0 0 10px rgba(255, 255, 255, 0.6)' 
+                      : '0 0 10px var(--accent-cyan, rgba(255, 107, 107, 0.5))',
+                    transition: 'all 0.4s ease-in-out',
+                    animation: predictionMode ? 'terminalGlow 2s ease-in-out infinite' : 'none',
                   }}>
                     &gt;_ DAREDEVIL_ANALYSIS_TERMINAL
                   </span>
+                  
+                  {/* Oracle Mode Indicator */}
+                  {predictionMode && (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: 'rgba(255, 165, 0, 0.1)',
+                      padding: '4px 8px',
+                      borderRadius: '6px',
+                      border: '1px solid rgba(255, 165, 0, 0.3)',
+                      animation: 'oracleFlash 1.5s ease-in-out infinite, oracleSlideIn 0.6s ease-in-out',
+                      transition: 'all 0.4s ease-in-out',
+                    }}>
+                      <div style={{
+                        width: '6px',
+                        height: '6px',
+                        background: '#ff8c00',
+                        borderRadius: '50%',
+                        animation: 'oracleBlink 0.8s ease-in-out infinite',
+                      }} />
+                      <span style={{
+                        color: '#ff8c00',
+                        fontSize: '0.7rem',
+                        fontFamily: 'Consolas, "Courier New", monospace',
+                        fontWeight: 'bold',
+                        textShadow: '0 0 4px rgba(255, 140, 0, 0.5)',
+                      }}>
+                        ORACLE
+                      </span>
+                      
+                      {/* Connection Indicator */}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '2px',
+                        marginLeft: '4px',
+                      }}>
+                        {/* WiFi Signal Bars */}
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'end',
+                          gap: '1px',
+                          height: '8px',
+                        }}>
+                          {/* Bar 1 */}
+                          <div style={{
+                            width: '2px',
+                            height: connectionStatus === 'connected' ? '3px' : connectionStatus === 'connecting' ? '2px' : '1px',
+                            background: connectionStatus === 'connected' ? '#10b981' : connectionStatus === 'connecting' ? '#f59e0b' : '#ef4444',
+                            borderRadius: '1px',
+                            transition: 'all 0.3s ease',
+                            animation: connectionStatus === 'connecting' ? 'connectionPulse 1s ease-in-out infinite' : 'none',
+                          }} />
+                          {/* Bar 2 */}
+                          <div style={{
+                            width: '2px',
+                            height: connectionStatus === 'connected' ? '5px' : connectionStatus === 'connecting' ? '3px' : '1px',
+                            background: connectionStatus === 'connected' ? '#10b981' : connectionStatus === 'connecting' ? '#f59e0b' : '#ef4444',
+                            borderRadius: '1px',
+                            transition: 'all 0.3s ease',
+                            animation: connectionStatus === 'connecting' ? 'connectionPulse 1s ease-in-out infinite 0.1s' : 'none',
+                          }} />
+                          {/* Bar 3 */}
+                          <div style={{
+                            width: '2px',
+                            height: connectionStatus === 'connected' ? '7px' : connectionStatus === 'connecting' ? '4px' : '1px',
+                            background: connectionStatus === 'connected' ? '#10b981' : connectionStatus === 'connecting' ? '#f59e0b' : '#ef4444',
+                            borderRadius: '1px',
+                            transition: 'all 0.3s ease',
+                            animation: connectionStatus === 'connecting' ? 'connectionPulse 1s ease-in-out infinite 0.2s' : 'none',
+                          }} />
+                          {/* Bar 4 */}
+                          <div style={{
+                            width: '2px',
+                            height: connectionStatus === 'connected' ? '8px' : connectionStatus === 'connecting' ? '5px' : '1px',
+                            background: connectionStatus === 'connected' ? '#10b981' : connectionStatus === 'connecting' ? '#f59e0b' : '#ef4444',
+                            borderRadius: '1px',
+                            transition: 'all 0.3s ease',
+                            animation: connectionStatus === 'connecting' ? 'connectionPulse 1s ease-in-out infinite 0.3s' : 'none',
+                          }} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Right side - Action buttons */}
@@ -2150,14 +2402,14 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                               &gt;_ DareDevil
                             </span>
                           </div>
-                          <span style={{ 
-                            color: 'var(--accent-cyan)', 
-                            fontSize: '0.75rem',
-                            opacity: 0.9,
-                            textShadow: '0 0 4px rgba(6, 182, 212, 0.3)',
-                          }}>
-                            NBA Analytics Expert
-                          </span>
+                            <span style={{ 
+                              color: 'var(--accent-cyan)', 
+                              fontSize: '0.75rem',
+                              opacity: 0.9,
+                              textShadow: '0 0 4px rgba(6, 182, 212, 0.3)',
+                            }}>
+                              {predictionMode ? 'Prediction Engine' : 'NBA Analytics Expert'}
+                            </span>
                           <div style={{
                             width: '12px',
                             height: '12px',
@@ -2561,6 +2813,61 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
             }
             100% {
               left: 100%;
+            }
+          }
+          
+          @keyframes oracleFlash {
+            0%, 100% {
+              opacity: 1;
+              box-shadow: 0 0 0 0 rgba(255, 165, 0, 0.4);
+            }
+            50% {
+              opacity: 0.7;
+              box-shadow: 0 0 0 4px rgba(255, 165, 0, 0.1);
+            }
+          }
+          
+          @keyframes oracleBlink {
+            0%, 100% {
+              opacity: 1;
+              transform: scale(1);
+            }
+            50% {
+              opacity: 0.3;
+              transform: scale(0.8);
+            }
+          }
+          
+          @keyframes terminalGlow {
+            0%, 100% {
+              textShadow: 0 0 10px rgba(255, 255, 255, 0.6);
+              transform: scale(1);
+            }
+            50% {
+              textShadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.4);
+              transform: scale(1.02);
+            }
+          }
+          
+          @keyframes oracleSlideIn {
+            0% {
+              opacity: 0;
+              transform: translateX(-20px) scale(0.8);
+            }
+            100% {
+              opacity: 1;
+              transform: translateX(0) scale(1);
+            }
+          }
+          
+          @keyframes connectionPulse {
+            0%, 100% {
+              opacity: 0.6;
+              transform: scaleY(1);
+            }
+            50% {
+              opacity: 1;
+              transform: scaleY(1.2);
             }
           }
         `}
