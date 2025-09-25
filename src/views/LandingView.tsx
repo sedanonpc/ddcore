@@ -32,7 +32,8 @@ const LandingView: React.FC = () => {
    * Detect mobile device and check for pending connections
    */
   useEffect(() => {
-    setIsMobile(isMobileDevice());
+    // Temporarily disable mobile detection to force desktop UI
+    setIsMobile(false);
     
     // Check for pending wallet connection (after deep link redirect)
     const checkPendingConnection = async () => {

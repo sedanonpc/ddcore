@@ -24,17 +24,17 @@ export interface MobileWalletDetection {
 export const isMobileDevice = (): boolean => {
   if (typeof window === 'undefined') return false;
   
-  // Check for touch capability and screen size
-  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-  const isSmallScreen = window.innerWidth <= 768;
-  
-  // Also check user agent for mobile keywords
+  // Only check user agent for mobile keywords - be very strict
   const userAgent = navigator.userAgent.toLowerCase();
   const mobileKeywords = ['android', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone'];
   const isMobileUA = mobileKeywords.some(keyword => userAgent.includes(keyword));
   
-  // Only consider it mobile if it's actually a mobile device, not just a small desktop browser
-  return isMobileUA && (hasTouch || isSmallScreen);
+  // Additional check: ensure it's not a desktop browser with mobile-like user agent
+  const isDesktopBrowser = userAgent.includes('chrome') && !userAgent.includes('mobile') && 
+                          !userAgent.includes('android') && !userAgent.includes('iphone');
+  
+  // Only return true if it's genuinely a mobile device user agent
+  return isMobileUA && !isDesktopBrowser;
 };
 
 /**
