@@ -16,7 +16,7 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ url, size = 200 }) => {
           width: size,
           margin: 2,
           color: {
-            dark: '#ffffff', // White QR code
+            dark: '#ff0000', // Red QR code
             light: '#000000' // Black background
           }
         })
@@ -34,20 +34,31 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ url, size = 200 }) => {
   if (!qrCodeDataURL) {
     return (
       <div style={{
+        position: 'relative',
         width: size,
         height: size,
         background: '#000000',
-        border: '3px solid #ff0000',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: '#ffffff',
+        color: '#ff0000',
         fontSize: '0.8rem',
         fontFamily: 'Consolas, "Courier New", monospace',
         borderRadius: '8px',
-        animation: 'pulse 2s infinite'
+        overflow: 'hidden',
       }}>
-        Loading QR...
+        <span style={{ zIndex: 2, position: 'relative' }}>Loading QR...</span>
+        {/* Shine animation overlay */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: '-100%',
+          width: '100%',
+          height: '100%',
+          background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)',
+          animation: 'qrShine 3s ease-in-out infinite',
+          borderRadius: '8px',
+        }} />
       </div>
     )
   }
@@ -67,18 +78,36 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ url, size = 200 }) => {
         alignItems: 'center',
         justifyContent: 'center'
       }}>
-        <img
-          src={qrCodeDataURL}
-          alt="QR Code"
-          style={{
-            width: size,
-            height: size,
-            border: '3px solid #ff0000',
+        <div style={{
+          position: 'relative',
+          width: size,
+          height: size,
+          borderRadius: '8px',
+          background: '#000000',
+          overflow: 'hidden',
+        }}>
+          <img
+            src={qrCodeDataURL}
+            alt="QR Code"
+            style={{
+              width: '100%',
+              height: '100%',
+              borderRadius: '8px',
+              background: '#000000',
+            }}
+          />
+          {/* Shine animation overlay */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: '-100%',
+            width: '100%',
+            height: '100%',
+            background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)',
+            animation: 'qrShine 3s ease-in-out infinite',
             borderRadius: '8px',
-            background: '#000000',
-            animation: 'pulse 2s infinite'
-          }}
-        />
+          }} />
+        </div>
       </div>
     </div>
   )

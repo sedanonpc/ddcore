@@ -435,7 +435,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
         if (mcpResponse.data?.shareableUrl) {
           const shareMessage: ChatMessage = {
             id: `ai_share_${Date.now()}`,
-            content: `🎯 **BET ACCEPTANCE PAGE**\n\n📱 **Share this link with friends to accept your bet:**\n${mcpResponse.data.shareableUrl}\n\n📲 **QR Code:** Available for easy sharing\n\n🎲 Once someone accepts, the bet will be locked and ready for resolution!`,
+            content: `🎯 **BET ACCEPTANCE PAGE**\n\n📱 **Share this link with friends to accept your bet:**\n${mcpResponse.data.shareableUrl}\n\n😈 **QR Code:** Available for easy sharing\n\n🎲 Once someone accepts, the bet will be locked and ready for resolution!`,
             type: 'text',
             timestamp: new Date(),
             isUser: false
@@ -1962,44 +1962,99 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                     >
                       <div style={{
                         maxWidth: '85%',
-                        padding: '12px 16px',
-                        borderRadius: '8px',
+                        padding: '16px 20px',
+                        borderRadius: '16px',
                         background: message.isUser 
-                          ? 'linear-gradient(135deg, #1e3a8a, #1e40af)' 
-                          : 'linear-gradient(135deg, #991b1b, #7f1d1d)',
-                        color: 'var(--text-primary)',
-                        fontSize: '0.875rem',
-                        border: 'none',
+                          ? 'linear-gradient(135deg, rgba(30, 58, 138, 0.95), rgba(30, 64, 175, 0.9))' 
+                          : 'linear-gradient(135deg, rgba(15, 15, 15, 0.95), rgba(25, 25, 25, 0.9))',
+                        color: message.isUser ? '#ffffff' : '#f0f0f0',
+                        fontSize: '0.9rem',
+                        border: message.isUser 
+                          ? '1px solid rgba(59, 130, 246, 0.3)' 
+                          : '1px solid rgba(220, 38, 38, 0.4)',
                         fontFamily: 'var(--font-primary)',
-                        lineHeight: '1.5',
+                        lineHeight: '1.6',
                         boxShadow: message.isUser 
-                          ? '0 0 10px rgba(30, 58, 138, 0.4)' 
-                          : '0 0 10px rgba(127, 29, 29, 0.3)',
+                          ? '0 8px 32px rgba(30, 58, 138, 0.3), 0 0 0 1px rgba(59, 130, 246, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)' 
+                          : '0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(220, 38, 38, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
                         position: 'relative',
-                        animation: 'messageSlideIn 0.3s ease-out',
+                        animation: 'messageSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)',
+                        overflow: 'hidden',
                       }}>
                         {!message.isUser && (
                           <div style={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '8px',
-                            marginBottom: '8px',
-                            fontSize: '0.75rem',
+                            gap: '12px',
+                            marginBottom: '12px',
+                            paddingBottom: '8px',
+                            borderBottom: '1px solid rgba(220, 38, 38, 0.2)',
+                            fontSize: '0.8rem',
                           }}>
-                            <span style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>
-                              &gt;_ DareDevil
-                            </span>
-                            <span style={{ color: 'var(--accent-cyan)', fontSize: '0.7rem' }}>
-                              NBA Analytics Expert
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              background: 'rgba(220, 38, 38, 0.1)',
+                              padding: '4px 8px',
+                              borderRadius: '8px',
+                              border: '1px solid rgba(220, 38, 38, 0.3)',
+                            }}>
+                              <div style={{
+                                width: '6px',
+                                height: '6px',
+                                background: 'var(--accent-red)',
+                                borderRadius: '50%',
+                                animation: 'pulse 2s ease-in-out infinite',
+                              }} />
+                              <span style={{ 
+                                color: 'var(--accent-red)', 
+                                fontWeight: 'bold',
+                                textShadow: '0 0 8px rgba(220, 38, 38, 0.5)',
+                              }}>
+                                &gt;_ DareDevil
+                              </span>
+                            </div>
+                            <span style={{ 
+                              color: 'var(--accent-cyan)', 
+                              fontSize: '0.75rem',
+                              opacity: 0.9,
+                              textShadow: '0 0 4px rgba(6, 182, 212, 0.3)',
+                            }}>
+                              @Agent_Hellracer
                             </span>
                           </div>
                         )}
+                        {/* Subtle background pattern for AI messages */}
+                        {!message.isUser && (
+                          <div style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            background: `
+                              radial-gradient(circle at 20% 20%, rgba(220, 38, 38, 0.03) 0%, transparent 50%),
+                              radial-gradient(circle at 80% 80%, rgba(6, 182, 212, 0.02) 0%, transparent 50%),
+                              linear-gradient(45deg, transparent 30%, rgba(220, 38, 38, 0.01) 50%, transparent 70%)
+                            `,
+                            pointerEvents: 'none',
+                            zIndex: 0,
+                          }} />
+                        )}
+                        
                         <div style={{ 
-                          marginBottom: '4px',
+                          marginBottom: '8px',
                           fontFamily: 'Consolas, "Courier New", monospace',
                           fontSize: '0.9rem',
-                          lineHeight: '1.2',
-                          whiteSpace: 'pre-wrap'
+                          lineHeight: '1.4',
+                          whiteSpace: 'pre-wrap',
+                          position: 'relative',
+                          zIndex: 1,
+                          textShadow: message.isUser ? 'none' : '0 1px 2px rgba(0, 0, 0, 0.3)',
+                          letterSpacing: '0.3px',
                         }}>
                           {renderMessageContent(message.content)}
                         </div>
@@ -2016,16 +2071,23 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                         {!message.isUser && (
                           <div style={{
                             fontSize: '0.7rem',
-                            color: 'var(--text-muted)',
-                            marginBottom: '4px',
+                            color: 'rgba(220, 38, 38, 0.7)',
+                            marginBottom: '6px',
+                            textAlign: 'left',
+                            fontFamily: 'Consolas, "Courier New", monospace',
+                            textShadow: '0 0 4px rgba(220, 38, 38, 0.3)',
+                            letterSpacing: '0.5px',
                           }}>
                             PREDICTION ENGINE v2.5
                           </div>
                         )}
                         <div style={{
                           fontSize: '0.7rem',
-                          color: 'var(--text-muted)',
+                          color: message.isUser ? 'rgba(255, 255, 255, 0.7)' : 'rgba(240, 240, 240, 0.6)',
                           textAlign: message.isUser ? 'right' : 'left',
+                          fontFamily: 'Consolas, "Courier New", monospace',
+                          textShadow: message.isUser ? '0 1px 2px rgba(0, 0, 0, 0.3)' : '0 1px 2px rgba(0, 0, 0, 0.4)',
+                          letterSpacing: '0.3px',
                         }}>
                           {message.timestamp.toLocaleTimeString('en-US', { 
                             hour: '2-digit', 
@@ -2040,28 +2102,60 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                     <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                       <div style={{
                         maxWidth: '85%',
-                        padding: '12px 16px',
-                        borderRadius: '8px',
-                        background: 'linear-gradient(135deg, #7f1d1d, #991b1b)',
-                        color: 'var(--accent-cyan)',
-                        fontSize: '0.875rem',
-                        border: 'none',
+                        padding: '16px 20px',
+                        borderRadius: '16px',
+                        background: 'linear-gradient(135deg, rgba(15, 15, 15, 0.95), rgba(25, 25, 25, 0.9))',
+                        color: '#f0f0f0',
+                        fontSize: '0.9rem',
+                        border: '1px solid rgba(220, 38, 38, 0.4)',
                         fontFamily: 'var(--font-primary)',
-                        lineHeight: '1.5',
-                        boxShadow: '0 0 10px rgba(127, 29, 29, 0.3)',
+                        lineHeight: '1.6',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(220, 38, 38, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
                         position: 'relative',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)',
+                        overflow: 'hidden',
+                        animation: 'messageSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
                       }}>
                         <div style={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '8px',
-                          marginBottom: '8px',
-                          fontSize: '0.75rem',
+                          gap: '12px',
+                          marginBottom: '12px',
+                          paddingBottom: '8px',
+                          borderBottom: '1px solid rgba(220, 38, 38, 0.2)',
+                          fontSize: '0.8rem',
                         }}>
-                          <span style={{ color: 'var(--text-primary)', fontWeight: 'bold' }}>
-                            &gt;_ DareDevil
-                          </span>
-                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.7rem' }}>
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            background: 'rgba(220, 38, 38, 0.1)',
+                            padding: '4px 8px',
+                            borderRadius: '8px',
+                            border: '1px solid rgba(220, 38, 38, 0.3)',
+                          }}>
+                            <div style={{
+                              width: '6px',
+                              height: '6px',
+                              background: 'var(--accent-red)',
+                              borderRadius: '50%',
+                              animation: 'pulse 1s ease-in-out infinite',
+                            }} />
+                            <span style={{ 
+                              color: 'var(--accent-red)', 
+                              fontWeight: 'bold',
+                              textShadow: '0 0 8px rgba(220, 38, 38, 0.5)',
+                            }}>
+                              &gt;_ DareDevil
+                            </span>
+                          </div>
+                          <span style={{ 
+                            color: 'var(--accent-cyan)', 
+                            fontSize: '0.75rem',
+                            opacity: 0.9,
+                            textShadow: '0 0 4px rgba(6, 182, 212, 0.3)',
+                          }}>
                             NBA Analytics Expert
                           </span>
                           <div style={{
@@ -2071,22 +2165,38 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                             borderTop: '2px solid transparent',
                             borderRadius: '50%',
                             animation: 'spin 1s linear infinite',
-                            marginLeft: '8px'
+                            marginLeft: '8px',
+                            filter: 'drop-shadow(0 0 4px rgba(6, 182, 212, 0.5))'
                           }} />
                         </div>
-                        <div style={{ marginBottom: '8px' }}>
+                        <div style={{ 
+                          marginBottom: '8px',
+                          fontFamily: 'Consolas, "Courier New", monospace',
+                          fontSize: '0.9rem',
+                          lineHeight: '1.4',
+                          textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+                          letterSpacing: '0.3px',
+                        }}>
                           🔄 Processing your request... Analyzing data and generating response.
                         </div>
                         <div style={{
                           fontSize: '0.7rem',
-                          color: 'var(--text-muted)',
-                          marginBottom: '4px',
+                          color: 'rgba(220, 38, 38, 0.7)',
+                          marginBottom: '6px',
+                          textAlign: 'left',
+                          fontFamily: 'Consolas, "Courier New", monospace',
+                          textShadow: '0 0 4px rgba(220, 38, 38, 0.3)',
+                          letterSpacing: '0.5px',
                         }}>
                           PREDICTION ENGINE v2.5 - ACTIVE
                         </div>
                         <div style={{
                           fontSize: '0.7rem',
-                          color: 'var(--text-muted)',
+                          color: 'rgba(240, 240, 240, 0.6)',
+                          textAlign: 'left',
+                          fontFamily: 'Consolas, "Courier New", monospace',
+                          textShadow: '0 1px 2px rgba(0, 0, 0, 0.4)',
+                          letterSpacing: '0.3px',
                         }}>
                           {new Date().toLocaleTimeString('en-US', { 
                             hour: '2-digit', 
@@ -2356,7 +2466,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
         />
       )}
 
-      {/* CSS Animation for QR Code Pulse */}
+      {/* Enhanced CSS Animations */}
       <style>
         {`
           @keyframes pulse {
@@ -2368,6 +2478,89 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
             }
             100% {
               box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+            }
+          }
+          
+          @keyframes messageSlideIn {
+            0% {
+              opacity: 0;
+              transform: translateY(20px) scale(0.95);
+            }
+            50% {
+              opacity: 0.8;
+              transform: translateY(-5px) scale(1.02);
+            }
+            100% {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+            }
+          }
+          
+          @keyframes spin {
+            from {
+              transform: rotate(0deg);
+            }
+            to {
+              transform: rotate(360deg);
+            }
+          }
+          
+          @keyframes recordingPulse {
+            0%, 100% {
+              box-shadow: 0 0 20px rgba(220, 38, 38, 0.8), 0 4px 12px rgba(220, 38, 38, 0.4);
+            }
+            50% {
+              box-shadow: 0 0 30px rgba(220, 38, 38, 1), 0 6px 20px rgba(220, 38, 38, 0.6);
+            }
+          }
+          
+          @keyframes buttonSpin {
+            from {
+              transform: rotate(0deg);
+            }
+            to {
+              transform: rotate(360deg);
+            }
+          }
+          
+          @keyframes dragReadySpin {
+            from {
+              transform: rotate(0deg);
+            }
+            to {
+              transform: rotate(360deg);
+            }
+          }
+          
+          @keyframes iconPulse {
+            0%, 100% {
+              opacity: 0.15;
+              transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+              opacity: 0.25;
+              transform: translate(-50%, -50%) scale(1.1);
+            }
+          }
+          
+          @keyframes consoleBlink {
+            0%, 50% {
+              opacity: 1;
+            }
+            51%, 100% {
+              opacity: 0.3;
+            }
+          }
+          
+          @keyframes qrShine {
+            0% {
+              left: -100%;
+            }
+            50% {
+              left: 100%;
+            }
+            100% {
+              left: 100%;
             }
           }
         `}

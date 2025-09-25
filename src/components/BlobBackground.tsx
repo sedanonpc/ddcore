@@ -151,12 +151,13 @@ const BlobBackground: React.FC<BlobBackgroundProps> = ({ width, height, isVisibl
         left: 0,
         width: `${width}px`,
         height: `${height}px`,
-        zIndex: isVisible ? 1 : 0,
+        zIndex: isVoiceDetected ? 100 : (isVisible ? 1 : 0),
         pointerEvents: 'none',
         overflow: 'hidden',
-        opacity: isVisible ? 1 : 0,
+        opacity: isVisible ? (isVoiceDetected ? 1 : 0.3) : 0,
         animation: isVisible ? 'blobScaleIn 0.5s ease-out' : 'blobScaleOut 0.3s ease-in',
         transformOrigin: 'center center',
+        transition: 'opacity 0.3s ease-in-out, z-index 0.3s ease-in-out',
       }}
     >
       <Canvas

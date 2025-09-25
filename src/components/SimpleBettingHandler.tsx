@@ -58,7 +58,6 @@ export function useSimpleBettingHandler({ setMessages, setIsLoading }: SimpleBet
           content: `✅ BET CREATED\n\n` +
             `📊 ${intent.amount} ${intent.currency} on ${intent.competitor}\n\n` +
             `🔗 TX: https://scan.test2.btcs.network/tx/${result.transactionHash}\n\n` +
-            `🔗 Explorer: https://scan.test2.btcs.network/tx/${result.transactionHash}\n\n` +
             `📱 Share: ${result.shareableUrl}`,
           type: 'text',
           timestamp: new Date(),
@@ -70,7 +69,7 @@ export function useSimpleBettingHandler({ setMessages, setIsLoading }: SimpleBet
         if (result.shareableUrl) {
           const qrMessage: ChatMessage = {
             id: `ai_qr_${Date.now()}`,
-            content: `📲 SCAN TO SHARE`,
+            content: `YOU'VE BEEN $DARED😈`,
             type: 'text',
             timestamp: new Date(),
             isUser: false,
