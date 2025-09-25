@@ -48,27 +48,21 @@ export interface BetParticipant {
   selectedCompetitorID: string;
 }
 
-export interface BetWinner {
-  competitorID: string;
-  username: string;
-  role: 'creator' | 'acceptor';
-}
-
 export interface AIPrediction {
-  winningCompetitorID: string;
   reason: string;
+  confidence?: number;
+  recommendation?: string;
 }
-
-export type BetStatus = 'open' | 'accepted' | 'resolved';
 
 export interface Bet {
   id: string;
   matchID: string;
   creator: BetParticipant;
-  amount: BetAmount;
-  status: BetStatus;
   acceptor?: BetParticipant;
-  winner?: BetWinner;
+  amount: BetAmount;
+  selectedCompetitorID: string;
+  status: 'open' | 'accepted' | 'resolved' | 'cancelled';
+  winner?: BetParticipant;
   aiPrediction?: AIPrediction;
   nftID?: string;
 }
@@ -80,50 +74,65 @@ export interface BetMetadata {
   matchCompetitors: Record<string, Competitor>;
 }
 
+// Database-specific types
 export interface DatabaseBet {
   id: string;
-  match_id: string;
+  creator: string;
+  acceptor?: string;
+  amount: number;
+  currency: string;
+  competitor: string;
   status: BetStatus;
-  created_date_utc: string;
-  last_updated_date_utc: string;
+  winner?: string;
+  aiPrediction?: AIPrediction;
+  nftID?: string;
+  matchID: string;
+  createdDateUTC: string;
+  lastUpdatedDateUTC: string;
+  isPublic: boolean;
+  data: BetMetadata;
+  // Additional properties used in components
   creator_username: string;
   acceptor_username?: string;
-  data: BetMetadata;
+  created_date_utc: string;
+  last_updated_date_utc: string;
 }
 
-export interface User {
-  username: string;
-  walletAddress: string;
-}
+export type BetStatus = 'open' | 'accepted' | 'resolved' | 'cancelled';
 
+// Username generation types
 export interface UsernameWords {
   adjectives: string[];
   nouns: string[];
 }
 
-
-// FastF1 Qualifying Results types
-export interface QualifyingResult {
-  position: number;
-  driver: string;
-  team: string;
-  lapTime: string;
-  timeDelta: string;
-  teamColor: string;
+export interface User {
+  walletAddress: string;
+  username: string;
 }
 
-export interface QualifyingData {
-  event: string;
-  session: string;
-  results: QualifyingResult[];
-  polePosition: {
-    driver: string;
-    time: string;
-  };
-  totalDrivers: number;
+export interface ChatMessage {
+  id: string;
+  content: string;
+  type: 'text' | 'voice';
+  timestamp: Date;
+  isUser: boolean;
 }
 
-// Ethereum/Web3 types
+export interface ChatError {
+  id: string;
+  code: ChatErrorCode;
+  message: string;
+  timestamp: Date;
+}
+
+export enum ChatErrorCode {
+  USER_NOT_AUTHENTICATED = 'USER_NOT_AUTHENTICATED',
+  BACKEND_INVALID_RESPONSE = 'BACKEND_INVALID_RESPONSE',
+  NETWORK_ERROR = 'NETWORK_ERROR',
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR'
+}
+
 export interface EthereumProvider {
   request: (args: { method: string; params?: any[] }) => Promise<any>;
   on: (event: string, handler: (...args: any[]) => void) => void;
@@ -135,4 +144,3 @@ declare global {
     ethereum?: EthereumProvider;
   }
 }
-

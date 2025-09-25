@@ -5,6 +5,10 @@ import aiIcon from "../assets/images/ICON@10x.png"
 import hellracerBanner from "../assets/images/hellracer banner 2.svg"
 import BlobBackground from "./BlobBackground"
 import { blockchainService } from "../services/blockchain"
+import { mcpService, BettingIntent, QuestionFlow, MCPResponse } from "../services/mcpService"
+import { llmService } from "../services/llmService"
+import ExpertAdviceModal from "./ExpertAdviceModal"
+import { useSimpleBettingHandler } from "./SimpleBettingHandler"
 
 interface AIChatAssistantProps {
   className?: string
@@ -113,6 +117,44 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
   const voiceRecordingTimerRef = React.useRef<NodeJS.Timeout | null>(null)
   const voiceDetectionTimerRef = React.useRef<NodeJS.Timeout | null>(null)
 
+  // MCP-specific state
+  const [bettingIntent, setBettingIntent] = React.useState<Partial<BettingIntent>>({})
+  const [questionFlow, setQuestionFlow] = React.useState<QuestionFlow | null>(null)
+  const [showExpertAdvice, setShowExpertAdvice] = React.useState(false)
+  const [bettingContext, setBettingContext] = React.useState<any>(null)
+
+  // Simple betting handler (bypasses MCP complexity)
+  const { handleSimpleBetRequest } = useSimpleBettingHandler({ setMessages, setIsLoading })
+
+  // Function to convert URLs in text to clickable links
+  const renderMessageContent = (content: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g
+    const parts = content.split(urlRegex)
+    
+    return parts.map((part, index) => {
+      if (urlRegex.test(part)) {
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: 'var(--accent-cyan)',
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              wordBreak: 'break-all'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {part}
+          </a>
+        )
+      }
+      return part
+    })
+  }
+
   // Calculate responsive dimensions with accessibility considerations
   const isMobile = windowSize.width < 768
   const FORM_WIDTH = isMobile ? 320 : 400
@@ -172,6 +214,238 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
         return '❌ An unexpected error occurred. Please try again.'
     }
   }, [])
+
+  // MCP Protocol Methods
+  const processBettingIntent = React.useCallback(async (message: string): Promise<void> => {
+    console.log('🚀 === BETTING INTENT PROCESSING START ===')
+    console.log('📝 Message:', message)
+    
+    try {
+      // Check user authentication first
+      const user = blockchainService.getCurrentUser()
+      console.log('🔍 User check:', { hasUser: !!user, user })
+      
+      if (!user) {
+        console.log('❌ CRITICAL: No user found - throwing error')
+        throw new Error('🔐 Please connect your wallet first to place bets')
+      }
+
+      // Check blockchain initialization
+      let isInitialized = blockchainService.isInitialized()
+      console.log('🔍 Blockchain initialized:', isInitialized)
+      
+      if (!isInitialized) {
+        console.log('🔍 Attempting to restore blockchain connection...')
+        const restored = await blockchainService.restoreConnection()
+        console.log('🔍 Restore result:', restored)
+        
+        if (!restored) {
+          console.log('❌ CRITICAL: Could not restore blockchain connection - throwing error')
+          throw new Error('🔗 Wallet not properly connected. Please reconnect your MetaMask wallet.')
+        }
+        
+        isInitialized = blockchainService.isInitialized()
+        console.log('🔍 Blockchain initialized after restore:', isInitialized)
+      }
+      
+      console.log('✅ Validation passed, proceeding with MCP flow...')
+      
+      // Parse natural language into betting intent
+      const intent = await mcpService.parseBettingIntent(message)
+      setBettingIntent(intent)
+
+      const context = {
+        userId: user.walletAddress,
+        intent,
+        matches: [],
+        availableCompetitors: {},
+        riskAssessment: { level: 'low' as const, factors: [], recommendation: '', confidence: 0 }
+      }
+
+      setBettingContext(context)
+
+      // Generate guiding questions
+      const questionFlow = await mcpService.generateNextQuestion(context)
+      setQuestionFlow(questionFlow)
+
+      // Check if we can proceed directly with bet creation
+      if (questionFlow.canProceed) {
+        console.log('✅ All information collected, proceeding with bet creation...')
+        await executeAutonomousBet(intent as BettingIntent)
+      } else if (questionFlow.questions.length > 0) {
+        // Add AI response with guiding questions
+        const aiMessage: ChatMessage = {
+          id: `ai_${Date.now()}`,
+          content: questionFlow.questions[0].question,
+          type: 'text',
+          timestamp: new Date(),
+          isUser: false
+        }
+        setMessages(prev => [...prev, aiMessage])
+      }
+
+    } catch (error) {
+      console.error('❌ BETTING INTENT FAILED:', error)
+      
+      // Show the REAL error instead of falling back
+      const errorMessage: ChatMessage = {
+        id: `error_${Date.now()}`,
+        content: `🚨 **BET CREATION FAILED**\n\n${error instanceof Error ? error.message : String(error)}\n\n🔧 **Debug Info:**\n- User in localStorage: ${!!blockchainService.getCurrentUser()}\n- Blockchain initialized: ${blockchainService.isInitialized()}\n- MetaMask available: ${!!(window as any).ethereum}`,
+        type: 'text',
+        timestamp: new Date(),
+        isUser: false
+      }
+      setMessages(prev => [...prev, errorMessage])
+      
+      // Don't let it fall through to LLM
+      return
+    }
+  }, [addError])
+
+  const answerGuidingQuestion = React.useCallback(async (questionId: string, answer: string): Promise<void> => {
+    if (!questionFlow || !bettingContext) return
+
+    try {
+      // Use MCP service to process the answer
+      const result = await mcpService.processQuestionAnswer(bettingContext, questionId, answer)
+      
+      // Update local state with the updated context
+      setBettingContext(result.updatedContext)
+      setBettingIntent(result.updatedContext.intent)
+
+      if (result.canProceed) {
+        // All information collected, proceed with bet creation
+        await executeAutonomousBet(result.updatedContext.intent as BettingIntent)
+      } else if (result.nextQuestion) {
+        // Ask the next question
+        const aiMessage: ChatMessage = {
+          id: `ai_${Date.now()}`,
+          content: result.nextQuestion.question,
+          type: 'text',
+          timestamp: new Date(),
+          isUser: false
+        }
+        setMessages(prev => [...prev, aiMessage])
+        
+        // Update question flow state
+        setQuestionFlow({
+          questions: [result.nextQuestion],
+          context: result.updatedContext,
+          completionPercentage: mcpService['calculateCompletionPercentage'](result.updatedContext.intent),
+          canProceed: result.canProceed,
+          currentQuestionIndex: 0
+        })
+      }
+
+    } catch (error) {
+      console.error('Failed to process question answer:', error)
+      addError(ChatErrorCode.BACKEND_INVALID_RESPONSE, 'Failed to process your answer')
+    }
+  }, [bettingContext, questionFlow, addError])
+
+  const executeAutonomousBet = React.useCallback(async (intent: BettingIntent): Promise<void> => {
+    if (!bettingContext) return
+
+    setIsLoading(true)
+
+    try {
+      // Generate expert advice first
+      const expertAdvice = await mcpService.generateExpertAdvice(bettingContext)
+
+      // Show expert advice modal if risk is high
+      if (expertAdvice.riskLevel === 'high' || expertAdvice.riskLevel === 'extreme') {
+        setShowExpertAdvice(true)
+        return
+      }
+
+      // Create autonomous match if needed
+      let match = bettingContext.matches[0]
+      if (!match) {
+        const matchCriteria = {
+          sport: intent.sport,
+          teams: [intent.competitor]
+        }
+        match = await mcpService.createAutonomousMatch(matchCriteria)
+      }
+
+      // Create bet autonomously
+      const mcpResponse = await mcpService.createAutonomousBet(intent, match)
+
+      if (mcpResponse.success) {
+        // Success confirmation message
+        const successMessage: ChatMessage = {
+          id: `ai_${Date.now()}`,
+          content: `✅ **BET CREATED SUCCESSFULLY!**\n\n🏆 **Bet ID:** ${mcpResponse.data?.betId}\n💎 **NFT Token ID:** ${mcpResponse.data?.nftTokenId}`,
+          type: 'text',
+          timestamp: new Date(),
+          isUser: false
+        }
+        setMessages(prev => [...prev, successMessage])
+
+        // Transaction details with Core Explorer link
+        if (mcpResponse.data?.transactionHash) {
+          const txMessage: ChatMessage = {
+            id: `ai_tx_${Date.now()}`,
+            content: `🔗 **TRANSACTION CONFIRMED ON-CHAIN**\n\n📋 **Transaction ID:** ${mcpResponse.data.transactionHash}\n\n🔍 **View on Core Explorer:** https://scan.test2.btcs.network/tx/${mcpResponse.data.transactionHash}\n\n✨ Your bet is now permanently recorded on the blockchain!`,
+            type: 'text',
+            timestamp: new Date(),
+            isUser: false
+          }
+          setMessages(prev => [...prev, txMessage])
+        }
+
+        // Bet acceptance page and sharing info
+        if (mcpResponse.data?.shareableUrl) {
+          const shareMessage: ChatMessage = {
+            id: `ai_share_${Date.now()}`,
+            content: `🎯 **BET ACCEPTANCE PAGE**\n\n📱 **Share this link with friends to accept your bet:**\n${mcpResponse.data.shareableUrl}\n\n📲 **QR Code:** Available for easy sharing\n\n🎲 Once someone accepts, the bet will be locked and ready for resolution!`,
+            type: 'text',
+            timestamp: new Date(),
+            isUser: false
+          }
+          setMessages(prev => [...prev, shareMessage])
+        }
+
+        // Instructions for next steps
+        const instructionsMessage: ChatMessage = {
+          id: `ai_instructions_${Date.now()}`,
+          content: `🎮 **WHAT HAPPENS NEXT?**\n\n1️⃣ Share the bet link with friends\n2️⃣ Wait for someone to accept the challenge\n3️⃣ Watch the match/game\n4️⃣ Bet resolves automatically based on results\n\n💰 Winner takes the full pot! Good luck! 🍀`,
+          type: 'text',
+          timestamp: new Date(),
+          isUser: false
+        }
+        setMessages(prev => [...prev, instructionsMessage])
+
+        // Reset betting state
+        setBettingIntent({})
+        setQuestionFlow(null)
+        setBettingContext(null)
+
+      } else {
+        const errorMessage: ChatMessage = {
+          id: `error_${Date.now()}`,
+          content: mcpResponse.message || 'Failed to create bet',
+          type: 'text',
+          timestamp: new Date(),
+          isUser: false
+        }
+        setMessages(prev => [...prev, errorMessage])
+      }
+
+    } catch (error) {
+      console.error('Failed to execute autonomous bet:', error)
+      const errorMessage: ChatMessage = {
+        id: `error_${Date.now()}`,
+        content: 'Failed to create bet. Please try again.',
+        type: 'text',
+        timestamp: new Date(),
+        isUser: false
+      }
+      setMessages(prev => [...prev, errorMessage])
+    } finally {
+      setIsLoading(false)
+    }
+  }, [bettingContext])
 
   // Load saved position from localStorage
   React.useEffect(() => {
@@ -704,12 +978,17 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
     if (e) {
       e.preventDefault()
     }
-    
+
     const message = textareaRef.current?.value?.trim()
     if (!message || isLoading || isRecording) return
 
+    // Clear input immediately to prevent double submission
+    if (textareaRef.current) {
+      textareaRef.current.value = ''
+    }
+
     setIsLoading(true)
-    
+
     // Add user message to chat
     const userMessage: ChatMessage = {
       id: `user_${Date.now()}`,
@@ -720,37 +999,69 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
     }
     setMessages(prev => [...prev, userMessage])
 
-    // Clear input immediately to prevent double submission
-    if (textareaRef.current) {
-      textareaRef.current.value = ''
-    }
-
     try {
-      const response = await sendMessageToBackend(message, 'text')
-      
-      // Add AI response to chat
-      const aiMessage: ChatMessage = {
-        id: `ai_${Date.now()}`,
-        content: response.message,
-        type: response.type,
-        timestamp: new Date(),
-        isUser: false
-      }
-      setMessages(prev => [...prev, aiMessage])
+      // Check if this is a betting-related query (MCP routing)
+      const bettingKeywords = ['bet', 'wager', 'gamble', 'stake', 'risk', 'lakers', 'celtics', 'warriors', 'bulls', 'chiefs', 'eagles', 'cowboys', 'max verstappen', 'lewis hamilton']
+      const isBettingQuery = bettingKeywords.some(keyword =>
+        message.toLowerCase().includes(keyword.toLowerCase())
+      )
 
-      // Handle voice response
-      if (response.type === 'voice' && response.audioUrl) {
-        const audio = new Audio(response.audioUrl)
-        audio.play()
+      if (isBettingQuery) {
+        // Use simple betting handler instead of complex MCP flow
+        console.log('🎯 Using simple betting handler')
+        await handleSimpleBetRequest(message)
+        return // Don't continue to LLM fallback
+      } else {
+        // Regular chat message - try LLM first, then fallback to backend
+        try {
+          const llmResponse = await llmService.generateChatResponse(message, { 
+            bettingContext: bettingContext,
+            userHistory: messages.slice(-5) // Last 5 messages for context
+          })
+          
+          if (llmResponse.success && llmResponse.data) {
+            const aiMessage: ChatMessage = {
+              id: `ai_${Date.now()}`,
+              content: llmResponse.data,
+              type: 'text',
+              timestamp: new Date(),
+              isUser: false
+            }
+            setMessages(prev => [...prev, aiMessage])
+          } else {
+            throw new Error('LLM response failed')
+          }
+        } catch (error) {
+          console.warn('LLM chat failed, falling back to backend:', error)
+          
+          // Fallback to original backend
+          const response = await sendMessageToBackend(message, 'text')
+
+          // Add AI response to chat
+          const aiMessage: ChatMessage = {
+            id: `ai_${Date.now()}`,
+            content: response.message,
+            type: response.type,
+            timestamp: new Date(),
+            isUser: false
+          }
+          setMessages(prev => [...prev, aiMessage])
+
+          // Handle voice response
+          if (response.type === 'voice' && response.audioUrl) {
+            const audio = new Audio(response.audioUrl)
+            audio.play()
+          }
+        }
       }
     } catch (error) {
       console.error('Chat error:', error)
-      
+
       // Extract error code if available
       const errorObj = error as Error
       const errorCode = errorObj.message.match(/\[([A-Z_]+)\]/)?.[1]
       const userFriendlyMessage = errorCode ? getErrorMessage(errorCode as ChatErrorCode) : 'Sorry, I encountered an error. Please try again.'
-      
+
       // Add error message
       const errorMessage: ChatMessage = {
         id: `error_${Date.now()}`,
@@ -763,7 +1074,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
     } finally {
       setIsLoading(false)
     }
-  }, [isLoading, isRecording, sendMessageToBackend, getErrorMessage])
+  }, [isLoading, isRecording, sendMessageToBackend, getErrorMessage, questionFlow, answerGuidingQuestion, processBettingIntent])
 
   /**
    * Handle voice message submission
@@ -1616,7 +1927,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
                           </div>
                         )}
                         <div style={{ marginBottom: '8px' }}>
-                          {message.content}
+                          {renderMessageContent(message.content)}
                         </div>
                         {!message.isUser && (
                           <div style={{
@@ -1942,6 +2253,24 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ className = '' }) => 
           )}
       </motion.div>
       </div>
+
+      {/* Expert Advice Modal */}
+      {bettingContext && (
+        <ExpertAdviceModal
+          isOpen={showExpertAdvice}
+          onClose={() => setShowExpertAdvice(false)}
+          context={{
+            betAmount: bettingIntent.amount || 0,
+            betType: 'single',
+            sport: bettingIntent.sport || 'unknown',
+            userHistory: {
+              totalBets: 0, // Would be fetched from user's betting history
+              winRate: 0,
+              avgBetSize: 0
+            }
+          }}
+        />
+      )}
     </>
   )
 }

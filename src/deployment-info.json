@@ -1,0 +1,11 @@
+{
+  "network": "coreTestnet2",
+  "chainId": 1114,
+  "deployer": "0x49410C0a481E25CcD5Cd5b6898C1536c9ee953e5",
+  "contracts": {
+    "SportsBettingNFT": "0x77E33Fe42BbD1c11a2dc7D53A113b2AA3379ebf1",
+    "SportsBetting": "0x974539A1935eE475ddBBf8cf37821CAef9478eC2"
+  },
+  "deployedAt": "2025-09-14T04:06:23.627Z",
+  "blockExplorer": "https://scan.test2.btcs.network"
+}

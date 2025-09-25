@@ -1,6 +1,9 @@
 import { ethers } from 'ethers';
 import { EthereumProvider, User } from '../types';
 
+// Import deployment info as fallback
+import deploymentInfo from '../deployment-info.json';
+
 // Core Testnet2 network configuration
 export const CORE_NETWORK = {
   chainId: '0x45A', // 1114 in hex
@@ -19,7 +22,7 @@ export const CORE_NETWORK = {
  * Manages wallet connections, contract interactions, and network switching
  */
 export class BlockchainService {
-  private provider: ethers.providers.Web3Provider | null = null;
+  private provider: ethers.providers.Web3Provider | null = null
   private signer: ethers.Signer | null = null;
   private bettingContract: ethers.Contract | null = null;
   private nftContract: ethers.Contract | null = null;
@@ -39,89 +42,95 @@ export class BlockchainService {
   ];
 
   private readonly NFT_ABI = [
-    'function mintBetNFT(address to, string memory metadataURI) external returns (uint256)',
-    'function setTokenURI(uint256 tokenId, string memory newURI) external',
+    'function mintNFT(address to, string memory tokenURI) external returns (uint256)',
     'function tokenURI(uint256 tokenId) external view returns (string)',
-    'function getCurrentTokenId() external view returns (uint256)',
-    'event BetNFTMinted(uint256 indexed tokenId, address indexed bettor, string metadataURI)'
+    'function ownerOf(uint256 tokenId) external view returns (address)',
+    'function balanceOf(address owner) external view returns (uint256)',
+    'function transferFrom(address from, address to, uint256 tokenId) external'
   ];
 
   /**
    * Check if MetaMask is installed
    */
   public isMetaMaskInstalled(): boolean {
-    return typeof window.ethereum !== 'undefined';
+    return typeof window !== 'undefined' && !!(window as any).ethereum;
   }
 
   /**
-   * Connect to MetaMask wallet
+   * Connect wallet and initialize contracts
    */
   public async connectWallet(): Promise<User> {
-    if (!this.isMetaMaskInstalled()) {
-      throw new Error('MetaMask is not installed. Please install MetaMask to continue.');
+    if (typeof window === 'undefined' || !(window as any).ethereum) {
+      throw new Error('MetaMask not detected. Please install MetaMask.');
     }
+
+    const ethereum = (window as any).ethereum as EthereumProvider;
 
     try {
       // Request account access
-      const accounts = await window.ethereum!.request({
-        method: 'eth_requestAccounts',
-      });
-
-      if (accounts.length === 0) {
-        throw new Error('No accounts found. Please connect your MetaMask wallet.');
+      const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+      
+      if (!accounts || accounts.length === 0) {
+        throw new Error('No accounts found. Please check your MetaMask connection.');
       }
 
-      // Initialize provider and signer
-      this.provider = new ethers.providers.Web3Provider(window.ethereum!);
+      // Initialize provider
+      this.provider = new ethers.providers.Web3Provider(ethereum);
       this.signer = this.provider.getSigner();
 
-      const walletAddress = accounts[0];
-
-      // Switch to Core Testnet2 if not already connected
-      await this.switchToCoreFallback();
+      // Get network info and switch if needed
+      const network = await this.provider.getNetwork();
+      if (network.chainId !== 1114) { // Core Testnet2 chain ID
+        await this.switchToCore();
+      }
 
       // Initialize contracts
       this.initializeContracts();
 
-      // Generate username for the user
-      const username = this.generateUsername();
+      // Create user object
+      const address = await this.signer.getAddress();
+      const user: User = {
+        walletAddress: address,
+        username: `user_${address.slice(-6)}` // Generate a simple username
+      };
 
-      // Store user data in localStorage
-      const user: User = { username, walletAddress };
+      // Save user to localStorage
       localStorage.setItem('user', JSON.stringify(user));
 
+      console.log('Wallet connected successfully:', user);
       return user;
+
     } catch (error: any) {
-      console.error('Wallet connection failed:', error);
+      console.error('Failed to connect wallet:', error);
       throw new Error(`Failed to connect wallet: ${error.message}`);
     }
   }
 
   /**
-   * Switch to Core Testnet2 network
+   * Switch to Core Testnet2
    */
   private async switchToCore(): Promise<void> {
+    if (typeof window === 'undefined' || !(window as any).ethereum) {
+      throw new Error('MetaMask not detected');
+    }
+
+    const ethereum = (window as any).ethereum as EthereumProvider;
+
     try {
-      // Try to switch to Core Testnet2
-      await window.ethereum!.request({
+      // Try to switch to Core network
+      await ethereum.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: CORE_NETWORK.chainId }],
       });
-    } catch (switchError: any) {
-      // If the network doesn't exist, add it
-      if (switchError.code === 4902) {
-        try {
-          await window.ethereum!.request({
-            method: 'wallet_addEthereumChain',
-            params: [CORE_NETWORK],
-          });
-        } catch (addError) {
-          console.error('Failed to add Core network:', addError);
-          throw new Error('Failed to add Core Testnet2 network to MetaMask');
-        }
+    } catch (error: any) {
+      // Network doesn't exist, add it
+      if (error.code === 4902) {
+        await ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [CORE_NETWORK],
+        });
       } else {
-        console.error('Failed to switch to Core network:', switchError);
-        throw new Error('Failed to switch to Core Testnet2 network');
+        throw error;
       }
     }
   }
@@ -134,34 +143,27 @@ export class BlockchainService {
       throw new Error('Signer not initialized');
     }
 
-    const bettingAddress = process.env.REACT_APP_BETTING_CONTRACT_ADDRESS;
-    const nftAddress = process.env.REACT_APP_NFT_CONTRACT_ADDRESS;
-
-    console.log('Environment variables check:');
-    console.log('REACT_APP_BETTING_CONTRACT_ADDRESS:', bettingAddress);
-    console.log('REACT_APP_NFT_CONTRACT_ADDRESS:', nftAddress);
+    // Try environment variables first, then fall back to deployment info
+    let bettingAddress = process.env.REACT_APP_BETTING_CONTRACT_ADDRESS;
+    let nftAddress = process.env.REACT_APP_NFT_CONTRACT_ADDRESS;
 
     if (!bettingAddress || !nftAddress) {
-      console.error('Contract addresses not found in environment variables');
-      console.error('Available env vars:', Object.keys(process.env).filter(key => key.startsWith('REACT_APP_')));
+      console.log('Environment variables not found, using deployment info fallback');
+      bettingAddress = deploymentInfo.contracts.SportsBetting;
+      nftAddress = deploymentInfo.contracts.SportsBettingNFT;
+    }
+
+    if (!bettingAddress || !nftAddress) {
+      console.error('Contract addresses not found in environment variables or deployment info');
       return;
     }
 
     this.bettingContract = new ethers.Contract(bettingAddress, this.BETTING_ABI, this.signer);
     this.nftContract = new ethers.Contract(nftAddress, this.NFT_ABI, this.signer);
-    
+
     console.log('Contracts initialized successfully');
     console.log('Betting contract address:', bettingAddress);
     console.log('NFT contract address:', nftAddress);
-  }
-
-  /**
-   * Generate a random username using the username generator utility
-   */
-  private generateUsername(): string {
-    // Import and use the username generator
-    const { usernameGenerator } = require('../utils/username');
-    return usernameGenerator.generateUsername();
   }
 
   /**
@@ -170,6 +172,67 @@ export class BlockchainService {
   public getCurrentUser(): User | null {
     const userData = localStorage.getItem('user');
     return userData ? JSON.parse(userData) : null;
+  }
+
+  /**
+   * Restore blockchain connection from localStorage user
+   */
+  public async restoreConnection(): Promise<boolean> {
+    const user = this.getCurrentUser();
+    if (!user) {
+      console.log('🔍 No user in localStorage to restore');
+      return false;
+    }
+
+    if (this.isInitialized()) {
+      console.log('🔍 Blockchain already initialized');
+      return true;
+    }
+
+    if (!this.isMetaMaskInstalled()) {
+      console.log('🔍 MetaMask not installed');
+      return false;
+    }
+
+    try {
+      console.log('🔍 Attempting to restore blockchain connection...');
+      const ethereum = (window as any).ethereum as EthereumProvider;
+
+      // Check if the account is still connected
+      const accounts = await ethereum.request({ method: 'eth_accounts' });
+      if (!accounts || accounts.length === 0) {
+        console.log('🔍 No accounts connected in MetaMask');
+        return false;
+      }
+
+      // Check if the stored user's address matches the connected account
+      const connectedAddress = accounts[0].toLowerCase();
+      const storedAddress = user.walletAddress.toLowerCase();
+      if (connectedAddress !== storedAddress) {
+        console.log('🔍 Account mismatch:', { connectedAddress, storedAddress });
+        return false;
+      }
+
+      // Initialize provider and signer
+      this.provider = new ethers.providers.Web3Provider(ethereum);
+      this.signer = this.provider.getSigner();
+
+      // Check network
+      const network = await this.provider.getNetwork();
+      if (network.chainId !== 1114) {
+        console.log('🔍 Wrong network, need to switch to Core Testnet2');
+        return false;
+      }
+
+      // Initialize contracts
+      this.initializeContracts();
+
+      console.log('✅ Blockchain connection restored successfully');
+      return true;
+    } catch (error) {
+      console.error('❌ Failed to restore blockchain connection:', error);
+      return false;
+    }
   }
 
   /**
@@ -193,12 +256,22 @@ export class BlockchainService {
     metadataURI: string
   ): Promise<{ betId: number; nftTokenId: number; transactionHash: string }> {
     if (!this.bettingContract) {
-      throw new Error('Betting contract not initialized');
+      throw new Error('Betting contract not initialized. Please connect your wallet first.');
     }
 
     try {
+      console.log('🚀 Creating bet on blockchain...', {
+        matchId,
+        creatorSelection,
+        amount,
+        metadataURI
+      });
+
       const amountWei = ethers.utils.parseEther(amount);
       
+      console.log('💰 Amount in Wei:', amountWei.toString());
+      console.log('🔗 Calling createBet function...');
+
       const tx = await this.bettingContract.createBet(
         matchId,
         creatorSelection,
@@ -206,7 +279,12 @@ export class BlockchainService {
         { value: amountWei }
       );
 
+      console.log('📝 Transaction sent:', tx.hash);
+      console.log('⏳ Waiting for confirmation...');
+
       const receipt = await tx.wait();
+      
+      console.log('✅ Transaction confirmed!', receipt);
       
       // Parse the BetCreated event to get bet ID and NFT token ID
       const betCreatedEvent = receipt.events?.find((e: any) => e.event === 'BetCreated');
@@ -227,13 +305,19 @@ export class BlockchainService {
           Number(betCreatedEvent.args.nftTokenId)) : 
         betCreatedEvent.args[5] ? Number(betCreatedEvent.args[5]) : 0;
 
+      console.log('🎉 Bet created successfully!', {
+        betId,
+        nftTokenId,
+        transactionHash: tx.hash
+      });
+
       return {
         betId,
         nftTokenId,
-        transactionHash: receipt.transactionHash,
+        transactionHash: tx.hash
       };
     } catch (error: any) {
-      console.error('Create bet failed:', error);
+      console.error('Failed to create bet:', error);
       throw new Error(`Failed to create bet: ${error.message}`);
     }
   }
@@ -246,16 +330,13 @@ export class BlockchainService {
     acceptorSelection: string,
     amount: string,
     newMetadataURI: string
-  ): Promise<string> {
+  ): Promise<{ transactionHash: string }> {
     if (!this.bettingContract) {
       throw new Error('Betting contract not initialized');
     }
 
     try {
-      console.log('AcceptBet params:', { betId, acceptorSelection, amount, newMetadataURI });
-      
       const amountWei = ethers.utils.parseEther(amount);
-      console.log('Amount in Wei:', amountWei.toString());
       
       const tx = await this.bettingContract.acceptBet(
         betId,
@@ -265,27 +346,30 @@ export class BlockchainService {
       );
 
       const receipt = await tx.wait();
-      return receipt.transactionHash;
+
+      return {
+        transactionHash: tx.hash
+      };
     } catch (error: any) {
-      console.error('Accept bet failed:', error);
+      console.error('Failed to accept bet:', error);
       throw new Error(`Failed to accept bet: ${error.message}`);
     }
   }
 
   /**
-   * Resolve a bet (admin only)
+   * Resolve a bet on the blockchain
    */
   public async resolveBet(
     betId: number,
     winningSelection: string,
     finalMetadataURI: string
-  ): Promise<string> {
+  ): Promise<{ transactionHash: string }> {
     if (!this.bettingContract) {
       throw new Error('Betting contract not initialized');
     }
 
     try {
-      console.log('🔗 BLOCKCHAIN: Sending resolveBet transaction', {
+      console.log('🚀 Resolving bet on blockchain...', {
         betId,
         winningSelection,
         finalMetadataURI
@@ -297,37 +381,24 @@ export class BlockchainService {
         finalMetadataURI
       );
 
-      console.log('🔗 BLOCKCHAIN: Transaction sent, waiting for confirmation', {
-        transactionHash: tx.hash,
-        betId
-      });
+      console.log('📝 Resolution transaction sent:', tx.hash);
+      console.log('⏳ Waiting for confirmation...');
 
       const receipt = await tx.wait();
       
-      console.log('🔗 BLOCKCHAIN: Transaction confirmed', {
-        transactionHash: receipt.transactionHash,
-        blockNumber: receipt.blockNumber,
-        gasUsed: receipt.gasUsed.toString(),
-        betId
-      });
+      console.log('✅ Bet resolved successfully!', receipt);
 
-      // Log any events emitted by the transaction
-      if (receipt.events && receipt.events.length > 0) {
-        console.log('🔗 BLOCKCHAIN: Events emitted:', receipt.events.map((event: any) => ({
-          event: event.event,
-          args: event.args
-        })));
-      }
-
-      return receipt.transactionHash;
+      return {
+        transactionHash: tx.hash
+      };
     } catch (error: any) {
-      console.error('🔗 BLOCKCHAIN: Resolve bet failed:', error);
+      console.error('Failed to resolve bet:', error);
       throw new Error(`Failed to resolve bet: ${error.message}`);
     }
   }
 
   /**
-   * Get bet information from blockchain
+   * Get bet details from blockchain
    */
   public async getBet(betId: number): Promise<any> {
     if (!this.bettingContract) {
@@ -336,132 +407,156 @@ export class BlockchainService {
 
     try {
       const bet = await this.bettingContract.getBet(betId);
-      return {
-        id: bet.id.toNumber(),
-        matchId: bet.matchId,
-        creator: bet.creator,
-        acceptor: bet.acceptor,
-        amount: ethers.utils.formatEther(bet.amount),
-        status: bet.status,
-        creatorSelection: bet.creatorSelection,
-        acceptorSelection: bet.acceptorSelection,
-        winner: bet.winner,
-        nftTokenId: bet.nftTokenId.toNumber(),
-        createdAt: new Date(bet.createdAt.toNumber() * 1000),
-        resolvedAt: bet.resolvedAt.toNumber() > 0 ? new Date(bet.resolvedAt.toNumber() * 1000) : null,
-      };
+      return bet;
     } catch (error: any) {
-      console.error('Get bet failed:', error);
+      console.error('Failed to get bet:', error);
       throw new Error(`Failed to get bet: ${error.message}`);
     }
   }
 
   /**
-   * Switch to Core Testnet2 network
+   * Check if contracts are initialized
    */
-  private async switchToCoreFallback(): Promise<void> {
-    if (!window.ethereum) {
-      throw new Error('MetaMask is required');
-    }
-
-    try {
-      // Check current network
-      const network = await this.provider!.getNetwork();
-      if (network.chainId === 1114) {
-        // Already on Core Testnet2
-        return;
-      }
-
-      // Try to switch to Core Testnet2
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: CORE_NETWORK.chainId }],
-      });
-    } catch (switchError: any) {
-      // If the network doesn't exist, add it
-      if (switchError.code === 4902) {
-        try {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [CORE_NETWORK],
-          });
-        } catch (addError) {
-          console.error('Failed to add Core Testnet2:', addError);
-          throw new Error('Please manually add Core Testnet2 to MetaMask');
-        }
-      } else {
-        console.error('Failed to switch to Core Testnet2:', switchError);
-        throw new Error('Please manually switch to Core Testnet2 in MetaMask');
-      }
-    }
+  public isInitialized(): boolean {
+    return !!(this.bettingContract && this.nftContract && this.signer);
   }
 
   /**
-   * Reconnect to wallet if user data exists in localStorage
-   * Call this on page load to restore wallet connection
-   */
-  public async reconnectWallet(): Promise<boolean> {
-    try {
-      // Check if user data exists in localStorage
-      const userData = localStorage.getItem('user');
-      if (!userData) {
-        return false;
-      }
-
-      // Check if MetaMask is available
-      if (!this.isMetaMaskInstalled()) {
-        return false;
-      }
-
-      // Check if MetaMask is already connected
-      const accounts = await window.ethereum!.request({ 
-        method: 'eth_accounts' 
-      });
-      
-      if (accounts.length === 0) {
-        // User is no longer connected in MetaMask
-        this.disconnect();
-        return false;
-      }
-
-      // Reinitialize provider and signer
-      this.provider = new ethers.providers.Web3Provider(window.ethereum!);
-      this.signer = this.provider.getSigner();
-      
-      // Reinitialize contracts
-      this.initializeContracts();
-      
-      console.log('Wallet reconnected successfully');
-      return true;
-      
-    } catch (error: any) {
-      console.error('Failed to reconnect wallet:', error);
-      this.disconnect(); // Clear any partial state
-      return false;
-    }
-  }
-
-  /**
-   * Check if wallet is connected and provider is initialized
+   * Check if wallet is connected (alias for isInitialized)
    */
   public isConnected(): boolean {
-    return !!(this.provider && this.signer);
+    return this.isInitialized();
   }
 
   /**
-   * Get user's wallet balance
+   * Reconnect wallet (alias for connectWallet)
    */
-  public async getBalance(): Promise<string> {
-    if (!this.provider || !this.signer) {
+  public async reconnectWallet(): Promise<User> {
+    return this.connectWallet();
+  }
+
+  /**
+   * Verify real wallet connection (not just localStorage cache)
+   */
+  public async verifyWalletConnection(): Promise<{
+    isConnected: boolean;
+    account?: string;
+    chainId?: string;
+    error?: string;
+  }> {
+    try {
+      console.log('🔍 Verifying wallet connection...');
+
+      // Check if ethereum provider exists
+      if (typeof window === 'undefined' || !(window as any).ethereum) {
+        return {
+          isConnected: false,
+          error: 'MetaMask not detected'
+        };
+      }
+
+      const ethereum = (window as any).ethereum as EthereumProvider;
+
+      // Check accounts
+      const accounts = await ethereum.request({ method: 'eth_accounts' });
+      if (!accounts || accounts.length === 0) {
+        return {
+          isConnected: false,
+          error: 'No accounts connected'
+        };
+      }
+
+      // Check network
+      const chainId = await ethereum.request({ method: 'eth_chainId' });
+      
+      console.log('✅ Wallet verification result:', {
+        account: accounts[0],
+        chainId,
+        expectedChainId: CORE_NETWORK.chainId
+      });
+
+      return {
+        isConnected: true,
+        account: accounts[0],
+        chainId
+      };
+
+    } catch (error: any) {
+      console.error('❌ Wallet verification failed:', error);
+      return {
+        isConnected: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Comprehensive wallet status check
+   */
+  public async getWalletStatus(): Promise<{
+    hasLocalStorageUser: boolean;
+    localStorageUser: User | null;
+    isServiceInitialized: boolean;
+    walletVerification: any;
+    accountMatch: boolean;
+  }> {
+    const localStorageUser = this.getCurrentUser();
+    const isServiceInitialized = this.isInitialized();
+    const walletVerification = await this.verifyWalletConnection();
+    
+    const accountMatch = localStorageUser && walletVerification.account ? 
+      localStorageUser.walletAddress.toLowerCase() === walletVerification.account.toLowerCase() : 
+      false;
+
+    return {
+      hasLocalStorageUser: !!localStorageUser,
+      localStorageUser,
+      isServiceInitialized,
+      walletVerification,
+      accountMatch
+    };
+  }
+
+  /**
+   * Get network info
+   */
+  public async getNetworkInfo(): Promise<{ chainId: number; name: string }> {
+    if (!this.provider) {
       throw new Error('Provider not initialized');
     }
 
     try {
-      const address = await this.signer.getAddress();
-      const balance = await this.provider.getBalance(address);
+      const network = await this.provider.getNetwork();
+      return {
+        chainId: network.chainId,
+        name: network.name
+      };
+    } catch (error: any) {
+      console.error('Failed to get network info:', error);
+      throw new Error(`Failed to get network info: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get account balance
+   */
+  public async getBalance(address?: string): Promise<string> {
+    if (!this.provider) {
+      throw new Error('Provider not initialized');
+    }
+
+    try {
+      const user = this.getCurrentUser();
+      const targetAddress = address || user?.walletAddress;
+      
+      if (!targetAddress) {
+        throw new Error('No address provided');
+      }
+
+      const balance = await this.provider.getBalance(targetAddress);
       return ethers.utils.formatEther(balance);
     } catch (error: any) {
-      console.error('Get balance failed:', error);
+      console.error('Failed to get balance:', error);
       throw new Error(`Failed to get balance: ${error.message}`);
     }
   }

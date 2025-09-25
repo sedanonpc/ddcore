@@ -312,6 +312,13 @@ export class SupabaseService {
   }
 
   /**
+   * Get a specific bet by ID (alias for getBetById for backward compatibility)
+   */
+  public async getBet(betId: string): Promise<DatabaseBet | null> {
+    return this.getBetById(betId);
+  }
+
+  /**
    * Test database connection
    */
   public async testConnection(): Promise<boolean> {

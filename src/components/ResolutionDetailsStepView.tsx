@@ -134,9 +134,11 @@ const ResolutionDetailsStepView: React.FC<ResolutionDetailsStepViewProps> = ({
               ...bet.data.bet,
               status: 'resolved' as const,
               winner: {
-                competitorID: winnerCompetitorId,
                 username: winnerUsername,
-                role: betWinnerRole
+                walletAddress: betWinnerRole === 'creator' 
+                  ? bet.data.bet.creator.walletAddress 
+                  : bet.data.bet.acceptor?.walletAddress || '',
+                selectedCompetitorID: winnerCompetitorId
               }
             }
           };
