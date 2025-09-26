@@ -79,11 +79,6 @@ const F1QualifyingResults: React.FC<F1QualifyingResultsProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<'qualifying' | 'insights'>('qualifying');
 
-  useEffect(() => {
-    fetchQualifyingResults();
-    fetchBettingInsights();
-  }, [year, event, fetchQualifyingResults, fetchBettingInsights]);
-
   const fetchQualifyingResults = useCallback(async () => {
     try {
       setLoading(true);
@@ -152,6 +147,11 @@ const F1QualifyingResults: React.FC<F1QualifyingResultsProps> = ({
       // Don't set error state for insights - it's optional
     }
   }, [year, event]);
+
+  useEffect(() => {
+    fetchQualifyingResults();
+    fetchBettingInsights();
+  }, [fetchQualifyingResults, fetchBettingInsights]);
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
