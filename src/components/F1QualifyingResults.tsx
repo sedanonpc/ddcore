@@ -34,7 +34,7 @@ interface F1QualifyingResultsProps {
 const F1QualifyingResults: React.FC<F1QualifyingResultsProps> = ({ 
   className = '', 
   year = 2025, 
-  event = 'Azerbaijan' 
+  event = 'Australia' 
 }) => {
   const [qualifyingData, setQualifyingData] = useState<QualifyingData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,7 +50,10 @@ const F1QualifyingResults: React.FC<F1QualifyingResultsProps> = ({
       setLoading(true);
       setError(null);
       
-      const url = `http://localhost:8000/api/f1/qualifying?year=${year}&event=${encodeURIComponent(event)}`;
+      // Use local development server or Vercel serverless function
+      const isDevelopment = process.env.NODE_ENV === 'development';
+      const baseUrl = isDevelopment ? 'http://localhost:3001' : '';
+      const url = `${baseUrl}/api/f1/qualifying?year=${year}&event=${encodeURIComponent(event)}`;
       console.log(`🏎️ Fetching qualifying results for ${year} ${event}...`);
       console.log(`🏎️ URL: ${url}`);
       
@@ -60,7 +63,6 @@ const F1QualifyingResults: React.FC<F1QualifyingResultsProps> = ({
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
-        mode: 'cors',
       });
       
       console.log(`🏎️ Response status: ${response.status} ${response.statusText}`);
