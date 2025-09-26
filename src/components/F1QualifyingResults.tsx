@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface QualifyingResult {
   position: number;
@@ -82,9 +82,9 @@ const F1QualifyingResults: React.FC<F1QualifyingResultsProps> = ({
   useEffect(() => {
     fetchQualifyingResults();
     fetchBettingInsights();
-  }, [year, event]);
+  }, [year, event, fetchQualifyingResults, fetchBettingInsights]);
 
-  const fetchQualifyingResults = async () => {
+  const fetchQualifyingResults = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -125,9 +125,9 @@ const F1QualifyingResults: React.FC<F1QualifyingResultsProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [year, event]);
 
-  const fetchBettingInsights = async () => {
+  const fetchBettingInsights = useCallback(async () => {
     try {
       const isDevelopment = process.env.NODE_ENV === 'development';
       const baseUrl = isDevelopment ? 'http://localhost:3001' : '';
@@ -151,7 +151,7 @@ const F1QualifyingResults: React.FC<F1QualifyingResultsProps> = ({
       console.error('🎯 Error fetching betting insights:', err);
       // Don't set error state for insights - it's optional
     }
-  };
+  }, [year, event]);
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
