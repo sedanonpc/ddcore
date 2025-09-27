@@ -192,12 +192,12 @@ const LandingView: React.FC = () => {
       <div 
         className="landing-background"
         style={{
-          minHeight: '100vh',
+          height: '100vh',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'flex-end',
+          justifyContent: 'space-between',
           alignItems: 'center',
-          padding: 'var(--spacing-xl)',
+          padding: 'var(--spacing-xs) var(--spacing-sm)',
           position: 'relative',
           overflow: 'hidden'
         }}
@@ -231,17 +231,18 @@ const LandingView: React.FC = () => {
         <div
           style={{
             height: 'auto',
-            paddingTop: 'var(--spacing-md)',
-            paddingBottom: 'var(--spacing-md)',
+            paddingTop: '0',
+            paddingBottom: '0',
             display: 'flex',
             justifyContent: 'center',
             position: 'relative',
-            zIndex: 2
+            zIndex: 2,
+            flexShrink: 0
           }}
         >
           <div
             style={{
-              maxWidth: 'min(90vw, 720px)',
+              maxWidth: 'min(95vw, 1000px)',
               width: '100%',
               height: 'auto',
               position: 'relative'
@@ -251,7 +252,7 @@ const LandingView: React.FC = () => {
               role="img"
               aria-label="Agent Hellracer"
               style={{
-                maxWidth: 'min(90vw, 720px)',
+                maxWidth: 'min(95vw, 1000px)',
                 width: '100%',
                 height: 'auto',
                 opacity: 1,
@@ -265,14 +266,32 @@ const LandingView: React.FC = () => {
         <div className="sports-content-section" style={{ 
           display: 'flex', 
           flexDirection: 'column', 
-          gap: 'var(--spacing-lg)',
-          margin: 'var(--spacing-sm) auto var(--spacing-xs) auto',
-          maxWidth: 'min(90vw, 720px)',
-          width: '100%'
+          gap: 'var(--spacing-md)',
+          margin: 'var(--spacing-sm) auto',
+          maxWidth: 'min(95vw, 1000px)',
+          width: '100%',
+          flex: 1,
+          justifyContent: 'space-evenly',
+          overflow: 'visible'
         }}>
-          {/* Featured Matches Section */}
+          {/* F1 News Ticker - Wide Width */}
+          <div className="ticker-desktop-position" style={{ 
+            position: 'relative', 
+            zIndex: 3,
+            maxWidth: 'min(95vw, 1000px)',
+            width: '100%',
+            margin: '0 auto'
+          }}>
+            <F1NewsTicker className="landing-f1-ticker" />
+          </div>
+
+          {/* Featured Matches Section - Narrow Width */}
           {featuredMatch && (
-            <div className="featured-matches-section">
+            <div className="featured-matches-section" style={{ 
+              maxWidth: 'min(60vw, 600px)',
+              width: '100%',
+              margin: '0 auto'
+            }}>
               <FeaturedMatchCard
                 match={featuredMatch.match}
                 league={featuredMatch.league}
@@ -280,11 +299,6 @@ const LandingView: React.FC = () => {
               />
             </div>
           )}
-
-          {/* F1 News Ticker - positioned right after UPCOMING banner */}
-          <div className="ticker-desktop-position" style={{ position: 'relative', zIndex: 3 }}>
-            <F1NewsTicker className="landing-f1-ticker" />
-          </div>
         </div>
 
 
@@ -296,21 +310,21 @@ const LandingView: React.FC = () => {
             position: 'relative',
             zIndex: 2,
             textAlign: 'center',
-            marginBottom: 'var(--spacing-lg)',
-            maxWidth: 'min(90vw, 720px)',
+            maxWidth: 'min(95vw, 1000px)',
             width: '100%',
-            margin: '0 auto var(--spacing-lg) auto'
+            margin: '0 auto',
+            flexShrink: 0
           }}
         >
           {/* App branding */}
           <div className="landing-branding mb-lg">
             <p 
               style={{
-                fontSize: '1.25rem',
+                fontSize: '1rem',
                 color: 'var(--text-secondary)',
-                marginBottom: 'var(--spacing-xl)',
-                maxWidth: 'min(90vw, 720px)',
-                margin: '0 auto var(--spacing-xl) auto'
+                marginBottom: 'var(--spacing-xs)',
+                maxWidth: 'min(95vw, 1000px)',
+                margin: '0 auto var(--spacing-xs) auto'
               }}
             >
               
@@ -333,9 +347,9 @@ const LandingView: React.FC = () => {
                   onClick={handleConnectWallet}
                   disabled={isConnecting}
                   style={{
-                    fontSize: '1.25rem',
-                    padding: 'var(--spacing-lg) var(--spacing-2xl)',
-                    minWidth: '280px',
+                    fontSize: '1rem',
+                    padding: 'var(--spacing-sm) var(--spacing-lg)',
+                    minWidth: '220px',
                     position: 'relative'
                   }}
                 >
@@ -406,14 +420,15 @@ const LandingView: React.FC = () => {
 
           {/* Network information */}
           <div 
-            className="network-info mt-lg"
+            className="network-info"
             style={{
               color: 'var(--text-muted)',
-              fontSize: '0.75rem',
-              opacity: 0.8
+              fontSize: '0.65rem',
+              opacity: 0.8,
+              marginTop: 0
             }}
           >
-            <p style={{ margin: 0 }}>
+            <p style={{ margin: 1 }}>
               v1.01 Core Blockchain TestNet2
             </p>
           </div>
@@ -421,16 +436,79 @@ const LandingView: React.FC = () => {
 
 
         {/* F1 Media Player - positioned below bottom text */}
-        <div style={{ 
+        <div className="f1-media-player-container" style={{ 
           display: 'flex', 
           justifyContent: 'center',
-          margin: 'var(--spacing-xl) auto 0 auto',
-          maxWidth: 'min(90vw, 720px)',
-          width: '100%'
+          margin: 'var(--spacing-xs) auto var(--spacing-lg) auto',
+          maxWidth: 'min(95vw, 1000px)',
+          width: '100%',
+          flexShrink: 0
         }}>
           <F1MediaPlayer className="landing-f1-media" videoId="in03rYd74NU" />
         </div>
+
+        {/* Copyright Footer */}
+        <div style={{
+          position: 'absolute',
+          bottom: 'var(--spacing-xs)',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          color: 'var(--text-muted)',
+          fontSize: '0.55rem',
+          opacity: 0.6,
+          zIndex: 2,
+          textAlign: 'center',
+          whiteSpace: 'nowrap'
+        }}>
+          All Rights Reserved - New Prontera Corporation™ 2025
+        </div>
       </div>
+
+      {/* Mobile-specific styles */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @media (max-width: 768px) {
+            .landing-background {
+              height: 100vh !important;
+              padding: 8px 12px !important;
+              justify-content: flex-start !important;
+            }
+            
+            .sports-content-section {
+              gap: 16px !important;
+              margin: 16px auto !important;
+              flex: 0 1 auto !important;
+              justify-content: center !important;
+            }
+            
+            .landing-content {
+              margin: 16px auto !important;
+              flex: 0 1 auto !important;
+            }
+            
+            .f1-media-player-container {
+              margin: 16px auto !important;
+              flex: 0 1 auto !important;
+            }
+            
+            .landing-branding p {
+              margin: 8px auto !important;
+              font-size: 14px !important;
+            }
+            
+            .btn {
+              padding: 12px 24px !important;
+              font-size: 14px !important;
+              margin: 8px auto !important;
+            }
+            
+            .network-info {
+              margin-top: 4px !important;
+              font-size: 11px !important;
+            }
+          }
+        `
+      }} />
 
       {/* Loading overlay for connection process */}
       {isConnecting && (

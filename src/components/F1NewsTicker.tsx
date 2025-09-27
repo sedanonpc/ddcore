@@ -110,7 +110,7 @@ const F1NewsTicker: React.FC<F1NewsTickerProps> = ({
   if (loading) {
     return (
       <div className={`f1-news-ticker ${className}`} style={{
-        maxWidth: 'min(90vw, 720px)',
+        maxWidth: 'min(95vw, 1000px)',
         width: '100%',
         margin: '0 auto',
         position: 'relative',
@@ -180,7 +180,7 @@ const F1NewsTicker: React.FC<F1NewsTickerProps> = ({
   if (error) {
     return (
       <div className={`f1-news-ticker ${className}`} style={{
-        maxWidth: 'min(90vw, 720px)',
+        maxWidth: 'min(95vw, 1000px)',
         width: '100%',
         margin: '0 auto',
         position: 'relative',

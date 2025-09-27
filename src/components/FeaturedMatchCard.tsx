@@ -28,7 +28,7 @@ const FeaturedMatchCard: React.FC<FeaturedMatchCardProps> = ({ match, league, co
 
   return (
     <div className="upcoming-matches-card" style={{
-      maxWidth: 'min(90vw, 720px)',
+      maxWidth: '100%',
       width: '100%',
       margin: '0 auto',
       position: 'relative',

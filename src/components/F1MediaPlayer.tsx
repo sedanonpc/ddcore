@@ -69,7 +69,7 @@ const F1MediaPlayer: React.FC<F1MediaPlayerProps> = ({
   if (!isLoaded) {
     return (
       <div className={`media-player-card ${className}`} style={{
-        maxWidth: 'min(90vw, 720px)',
+        maxWidth: 'min(95vw, 1000px)',
         width: '100%',
         margin: '0 auto',
         position: 'relative',
@@ -126,7 +126,7 @@ const F1MediaPlayer: React.FC<F1MediaPlayerProps> = ({
   if (hasError || showFallback) {
     return (
       <div className={`media-player-card ${className}`} style={{
-        maxWidth: 'min(90vw, 720px)',
+        maxWidth: 'min(95vw, 1000px)',
         width: '100%',
         margin: '0 auto',
         position: 'relative',
@@ -244,7 +244,7 @@ const F1MediaPlayer: React.FC<F1MediaPlayerProps> = ({
       <div className="media-header" style={{
         background: '#DB0004',
         color: 'white',
-        padding: '12px 16px',
+        padding: '6px 16px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -271,15 +271,20 @@ const F1MediaPlayer: React.FC<F1MediaPlayerProps> = ({
         position: 'relative'
       }}>
         {/* YouTube Embed */}
-        <div style={{
+        <div className="f1-media-embed" style={{
           position: 'relative',
           width: '100%',
-          height: '200px'
+          height: '0',
+          paddingBottom: '58.5%', // Increased by 30% (45% * 1.3 = 58.5%)
+          overflow: 'hidden'
         }}>
           <iframe
             src={getEmbedUrl()}
             title="F1 Media Player"
             style={{
+              position: 'absolute',
+              top: '0',
+              left: '0',
               width: '100%',
               height: '100%',
               border: 'none',
@@ -308,6 +313,16 @@ const F1MediaPlayer: React.FC<F1MediaPlayerProps> = ({
         </div>
 
       </div>
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @media (max-width: 768px) {
+            .f1-media-embed {
+              padding-bottom: 52% !important; /* Increased by 30% (40% * 1.3 = 52%) */
+            }
+          }
+        `
+      }} />
     </div>
   );
 };
