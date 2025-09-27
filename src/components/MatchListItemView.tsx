@@ -97,7 +97,8 @@ const MatchListItemView: React.FC<MatchListItemViewProps> = ({ match, onSelect }
             fontSize: '0.875rem',
             fontWeight: 'bold',
             textTransform: 'uppercase',
-            letterSpacing: '0.5px'
+            letterSpacing: '0.5px',
+            fontFamily: 'var(--font-primary)'
           }}>
             {league?.name || 'MATCH'}
           </span>
@@ -110,7 +111,8 @@ const MatchListItemView: React.FC<MatchListItemViewProps> = ({ match, onSelect }
             padding: '4px 8px',
             borderRadius: '2px',
             fontSize: '0.75rem',
-            fontWeight: '600'
+            fontWeight: '600',
+            fontFamily: 'var(--font-primary)'
           }}
         >
           {getStatusText()}
@@ -129,7 +131,8 @@ const MatchListItemView: React.FC<MatchListItemViewProps> = ({ match, onSelect }
         {/* Match Title */}
         <h3 className="match-title mb-sm" style={{
           color: 'var(--text-primary)',
-          margin: '0 0 var(--spacing-sm) 0'
+          margin: '0 0 var(--spacing-sm) 0',
+          fontFamily: 'var(--font-primary)'
         }}>
           {match.title}
         </h3>
@@ -140,7 +143,9 @@ const MatchListItemView: React.FC<MatchListItemViewProps> = ({ match, onSelect }
           style={{
             color: 'var(--text-secondary)',
             fontSize: '1rem',
-            margin: '0 0 var(--spacing-md) 0'
+            margin: '0 0 var(--spacing-md) 0',
+            fontFamily: 'var(--font-secondary)',
+            textTransform: 'uppercase'
           }}
         >
           {match.subtitle}
@@ -182,7 +187,9 @@ const MatchListItemView: React.FC<MatchListItemViewProps> = ({ match, onSelect }
                 style={{
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: 'var(--text-primary)'
+                  color: 'var(--text-primary)',
+                  fontFamily: 'var(--font-secondary)',
+                  textTransform: 'uppercase'
                 }}
               >
                 {competitor.abbreviation}
@@ -199,7 +206,9 @@ const MatchListItemView: React.FC<MatchListItemViewProps> = ({ match, onSelect }
             flexDirection: 'column',
             gap: 'var(--spacing-xs)',
             fontSize: '0.875rem',
-            color: 'var(--text-muted)'
+            color: 'var(--text-muted)',
+            fontFamily: 'var(--font-secondary)',
+            textTransform: 'uppercase'
           }}
         >
           {/* Venue */}

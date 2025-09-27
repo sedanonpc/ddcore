@@ -13,10 +13,40 @@ export class MatchDataService {
   }
 
   /**
-   * Get all matches in display order
+   * Get all matches in display order with F1 prioritized and completed matches at bottom
    */
   public getAllMatches(): Match[] {
-    return this.data.matches.orderedIDsForDisplay.map(id => this.data.matches.data[id]);
+    const allMatches = this.data.matches.orderedIDsForDisplay.map(id => this.data.matches.data[id]);
+    
+    // Sort matches to prioritize F1 first, then maintain original order within each league
+    // Completed matches go to the bottom regardless of league
+    return allMatches.sort((a, b) => {
+      const aStatus = this.getMatchStatus(a.id);
+      const bStatus = this.getMatchStatus(b.id);
+      
+      // Completed matches go to the bottom
+      if (aStatus === 'completed' && bStatus !== 'completed') {
+        return 1;
+      }
+      if (aStatus !== 'completed' && bStatus === 'completed') {
+        return -1;
+      }
+      
+      // For non-completed matches, F1 comes first
+      if (aStatus !== 'completed' && bStatus !== 'completed') {
+        if (a.leagueID === 'f1' && b.leagueID !== 'f1') {
+          return -1;
+        }
+        if (a.leagueID !== 'f1' && b.leagueID === 'f1') {
+          return 1;
+        }
+      }
+      
+      // For matches within the same status and league, maintain original order
+      const aIndex = this.data.matches.orderedIDsForDisplay.indexOf(a.id);
+      const bIndex = this.data.matches.orderedIDsForDisplay.indexOf(b.id);
+      return aIndex - bIndex;
+    });
   }
 
   /**

@@ -146,6 +146,61 @@ const BetListItemView: React.FC<BetListItemViewProps> = ({ bet, onSelect }) => {
         </div>
       </div>
 
+      {/* Bet ID Section */}
+      <div style={{
+        background: 'linear-gradient(135deg, #1a0a0a 0%, #2d0a0a 100%)',
+        border: '1px solid #DB0004',
+        borderTop: 'none',
+        padding: '8px 16px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        fontSize: '0.75rem'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--spacing-xs)'
+        }}>
+          <span style={{
+            color: '#DB0004',
+            fontWeight: '600',
+            fontFamily: 'var(--font-primary)'
+          }}>
+            #BET ID:
+          </span>
+          <span style={{
+            color: '#ffffff',
+            fontFamily: 'monospace',
+            letterSpacing: '0.5px'
+          }}>
+            {bet.id.slice(0, 8).toUpperCase()}
+          </span>
+        </div>
+        
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--spacing-xs)'
+        }}>
+          <span style={{
+            color: '#DB0004',
+            fontWeight: '600',
+            fontFamily: 'var(--font-primary)'
+          }}>
+            CREATOR:
+          </span>
+          <span style={{
+            color: '#ffffff',
+            fontFamily: 'var(--font-secondary)',
+            textTransform: 'uppercase',
+            fontWeight: '500'
+          }}>
+            {bet.creator_username}
+          </span>
+        </div>
+      </div>
+
       {/* Black Content Area */}
       <div style={{
         background: '#000000',
@@ -162,7 +217,8 @@ const BetListItemView: React.FC<BetListItemViewProps> = ({ bet, onSelect }) => {
             style={{ 
               fontSize: '1.125rem',
               color: 'var(--text-primary)',
-              margin: '0 0 var(--spacing-xs) 0'
+              margin: '0 0 var(--spacing-xs) 0',
+              fontFamily: 'var(--font-primary)'
             }}
           >
             {match.title}
@@ -172,7 +228,9 @@ const BetListItemView: React.FC<BetListItemViewProps> = ({ bet, onSelect }) => {
             style={{
               color: 'var(--text-secondary)',
               fontSize: '0.875rem',
-              margin: 0
+              margin: 0,
+              fontFamily: 'var(--font-secondary)',
+              textTransform: 'uppercase'
             }}
           >
             {match.subtitle}
@@ -205,7 +263,8 @@ const BetListItemView: React.FC<BetListItemViewProps> = ({ bet, onSelect }) => {
                 fontSize: '1.5rem',
                 fontWeight: '700',
                 color: 'var(--text-accent)',
-                marginBottom: 'var(--spacing-xs)'
+                marginBottom: 'var(--spacing-xs)',
+                fontFamily: 'var(--font-primary)'
               }}
             >
               {betData.amount.value} {betData.amount.currency}
@@ -213,7 +272,9 @@ const BetListItemView: React.FC<BetListItemViewProps> = ({ bet, onSelect }) => {
             <div 
               style={{
                 fontSize: '0.75rem',
-                color: 'var(--text-muted)'
+                color: 'var(--text-muted)',
+                fontFamily: 'var(--font-secondary)',
+                textTransform: 'uppercase'
               }}
             >
               Bet Amount
@@ -226,7 +287,9 @@ const BetListItemView: React.FC<BetListItemViewProps> = ({ bet, onSelect }) => {
               style={{
                 fontSize: '0.875rem',
                 color: 'var(--text-muted)',
-                marginBottom: 'var(--spacing-xs)'
+                marginBottom: 'var(--spacing-xs)',
+                fontFamily: 'var(--font-secondary)',
+                textTransform: 'uppercase'
               }}
             >
               {bet.creator_username} picked:
@@ -258,7 +321,8 @@ const BetListItemView: React.FC<BetListItemViewProps> = ({ bet, onSelect }) => {
                     style={{
                       fontWeight: '600',
                       color: 'var(--text-primary)',
-                      fontSize: '0.875rem'
+                      fontSize: '0.875rem',
+                      fontFamily: 'var(--font-primary)'
                     }}
                   >
                     {creatorCompetitor.abbreviation}
@@ -266,7 +330,9 @@ const BetListItemView: React.FC<BetListItemViewProps> = ({ bet, onSelect }) => {
                   <div 
                     style={{
                       fontSize: '0.75rem',
-                      color: 'var(--text-secondary)'
+                      color: 'var(--text-secondary)',
+                      fontFamily: 'var(--font-secondary)',
+                      textTransform: 'uppercase'
                     }}
                   >
                     {creatorCompetitor.name}
@@ -283,7 +349,9 @@ const BetListItemView: React.FC<BetListItemViewProps> = ({ bet, onSelect }) => {
               fontSize: '0.875rem',
               color: 'var(--text-accent)',
               fontWeight: '500',
-              textAlign: 'center'
+              textAlign: 'center',
+              fontFamily: 'var(--font-secondary)',
+              textTransform: 'uppercase'
             }}
           >
             {betQuestion}

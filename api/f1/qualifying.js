@@ -4,7 +4,7 @@
  * Uses Ergast API (http://ergast.com/mrd/) for F1 data, with mock data fallback
  */
 
-// Removed mock data import - using Sportradar API instead
+const { mockQualifying2024LasVegas, mockQualifying2025Azerbaijan } = require('./qualifying-mock.js');
 
 export default async function handler(req, res) {
   // Enable CORS

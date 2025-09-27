@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { blockchainService } from '../services/blockchain';
 import { Squares } from '../components/Squares';
 import FeaturedMatchCard from '../components/FeaturedMatchCard';
-import F1QualifyingResults from '../components/F1QualifyingResults';
+import F1NewsTicker from '../components/F1NewsTicker';
 import F1MediaPlayer from '../components/F1MediaPlayer';
 import MobileWalletConnection from '../components/MobileWalletConnection';
 import { ReactComponent as AgentBannerTitle } from '../assets/images/Agent hellracer banner title.svg';
@@ -54,17 +54,22 @@ const LandingView: React.FC = () => {
   }, [navigate]);
 
   /**
-   * Load the next upcoming match for the featured section
+   * Load the next upcoming F1 match for the featured section
    */
   useEffect(() => {
     const loadFeaturedMatch = () => {
       try {
-        // Get all matches and find the next upcoming one (regardless of how far in future)
+        // Get all matches and filter for F1 only
         const allMatches = matchDataService.getAllMatches();
+        const f1Matches = allMatches.filter(match => {
+          const league = matchDataService.getLeague(match.leagueID);
+          return league && league.name.toLowerCase().includes('formula 1');
+        });
+        
         const now = new Date();
         
-        // Find the next match that's scheduled after now
-        const nextMatch = allMatches.find(match => {
+        // Find the next F1 match that's scheduled after now
+        const nextMatch = f1Matches.find(match => {
           const matchDate = new Date(match.scheduledDateInUTC);
           return matchDate > now;
         });
@@ -81,8 +86,8 @@ const LandingView: React.FC = () => {
             });
           }
         } else {
-          // Fallback: if no future matches, show the most recent match
-          const mostRecentMatch = allMatches[0];
+          // Fallback: if no future F1 matches, show the most recent F1 match
+          const mostRecentMatch = f1Matches[0];
           if (mostRecentMatch) {
             const league = matchDataService.getLeague(mostRecentMatch.leagueID);
             const competitors = matchDataService.getMatchCompetitors(mostRecentMatch.id);
@@ -97,7 +102,7 @@ const LandingView: React.FC = () => {
           }
         }
       } catch (error) {
-        console.error('Failed to load featured match:', error);
+        console.error('Failed to load featured F1 match:', error);
       }
     };
 
@@ -272,17 +277,13 @@ const LandingView: React.FC = () => {
                 match={featuredMatch.match}
                 league={featuredMatch.league}
                 competitors={featuredMatch.competitors}
-                allUpcomingMatches={matchDataService.getAllMatches().filter(m => {
-                  const matchDate = new Date(m.scheduledDateInUTC);
-                  return matchDate > new Date();
-                })}
               />
             </div>
           )}
 
-          {/* F1 Qualifying Results - positioned right after UPCOMING banner for desktop only */}
-          <div className="qualifying-desktop-position">
-            <F1QualifyingResults className="landing-f1-qualifying" />
+          {/* F1 News Ticker - positioned right after UPCOMING banner */}
+          <div className="ticker-desktop-position" style={{ position: 'relative', zIndex: 3 }}>
+            <F1NewsTicker className="landing-f1-ticker" />
           </div>
         </div>
 
@@ -418,16 +419,6 @@ const LandingView: React.FC = () => {
           </div>
         </div>
 
-        {/* F1 Qualifying Results - positioned below bottom text for mobile, above for desktop */}
-        <div className="qualifying-mobile-position" style={{ 
-          display: 'flex', 
-          justifyContent: 'center',
-          margin: 'var(--spacing-lg) auto 0 auto',
-          maxWidth: 'min(90vw, 720px)',
-          width: '100%'
-        }}>
-          <F1QualifyingResults className="landing-f1-qualifying" />
-        </div>
 
         {/* F1 Media Player - positioned below bottom text */}
         <div style={{ 

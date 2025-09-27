@@ -119,25 +119,13 @@ const BetCreationView: React.FC<BetCreationViewProps> = ({ match, onClose, onBet
       // Store bet in database using the blockchain bet ID
       const dbBet = {
         id: betId.toString(), // Use the blockchain bet ID as the database ID
-        creator: user.walletAddress,
-        acceptor: undefined,
-        amount: parseFloat(amount),
-        currency: process.env.REACT_APP_DEFAULT_CURRENCY || 'CORE',
-        competitor: creatorSelection,
+        match_id: match.id,
         status: 'open' as const,
-        winner: undefined,
-        aiPrediction: undefined,
-        nftID: nftTokenId.toString(),
-        matchID: match.id,
-        createdDateUTC: new Date().toISOString(),
-        lastUpdatedDateUTC: new Date().toISOString(),
-        isPublic: true,
-        data: betMetadata,
-        // Additional properties for compatibility
+        created_date_utc: new Date().toISOString(),
+        last_updated_date_utc: new Date().toISOString(),
         creator_username: user.username,
         acceptor_username: undefined,
-        created_date_utc: new Date().toISOString(),
-        last_updated_date_utc: new Date().toISOString()
+        data: betMetadata
       };
 
       await supabaseService.insertBet(dbBet);

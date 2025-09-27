@@ -159,7 +159,7 @@ const ResolutionDetailsStepView: React.FC<ResolutionDetailsStepViewProps> = ({
           // Update bet status in database
           await supabaseService.updateBet(bet.id, {
             status: 'resolved',
-            acceptor_username: bet.acceptor_username, // Maintain existing acceptor
+            // acceptor_username: bet.acceptor_username, // Removed - not in remote schema
             data: updatedBetMetadata
           });
 

@@ -77,25 +77,13 @@ export interface BetMetadata {
 // Database-specific types
 export interface DatabaseBet {
   id: string;
-  creator: string;
-  acceptor?: string;
-  amount: number;
-  currency: string;
-  competitor: string;
+  match_id: string;
   status: BetStatus;
-  winner?: string;
-  aiPrediction?: AIPrediction;
-  nftID?: string;
-  matchID: string;
-  createdDateUTC: string;
-  lastUpdatedDateUTC: string;
-  isPublic: boolean;
-  data: BetMetadata;
-  // Additional properties used in components
-  creator_username: string;
-  acceptor_username?: string;
   created_date_utc: string;
   last_updated_date_utc: string;
+  creator_username: string;
+  acceptor_username?: string;
+  data: BetMetadata;
 }
 
 export type BetStatus = 'open' | 'accepted' | 'resolved' | 'cancelled';

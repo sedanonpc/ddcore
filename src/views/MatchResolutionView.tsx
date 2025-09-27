@@ -319,7 +319,7 @@ const MatchResolutionView: React.FC = () => {
           // Update bet in database
           await supabaseService.updateBet(bet.id, {
             status: 'resolved',
-            acceptor_username: bet.acceptor_username,
+            // acceptor_username: bet.acceptor_username, // Removed - not in remote schema
             data: updatedBetMetadata
           });
 

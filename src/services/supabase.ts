@@ -189,18 +189,24 @@ export class SupabaseService {
    */
   public async getUserAcceptedBets(username: string): Promise<DatabaseBet[]> {
     try {
-      const { data, error } = await this.supabase
-        .from('bets')
-        .select('*')
-        .eq('acceptor_username', username)
-        .order('created_date_utc', { ascending: false });
-
-      if (error) {
-        console.error('Supabase query error:', error);
-        throw new Error(`Failed to fetch user accepted bets: ${error.message}`);
-      }
-
-      return data || [];
+      // Note: acceptor_username column doesn't exist in remote schema
+      // For now, return empty array until schema is updated
+      console.warn('getUserAcceptedBets: acceptor_username column not available in remote schema');
+      return [];
+      
+      // Original query (commented out due to schema mismatch):
+      // const { data, error } = await this.supabase
+      //   .from('bets')
+      //   .select('*')
+      //   .eq('acceptor_username', username)
+      //   .order('created_date_utc', { ascending: false });
+      //
+      // if (error) {
+      //   console.error('Supabase query error:', error);
+      //   throw new Error(`Failed to fetch user accepted bets: ${error.message}`);
+      // }
+      //
+      // return data || [];
     } catch (error: any) {
       console.error('Get user accepted bets failed:', error);
       throw new Error(`Failed to get user accepted bets: ${error.message}`);

@@ -3,7 +3,7 @@
  * Get all F1 events for a specific year
  */
 
-// Removed mock data import - using Sportradar API instead
+const { mockEvents2024, mockEvents2025 } = require('./events-mock.js');
 
 export default async function handler(req, res) {
   // Enable CORS
@@ -53,10 +53,20 @@ export default async function handler(req, res) {
         }
       }
     } catch (apiError) {
-      console.log('🏎️ Ergast API not accessible');
+      console.log('🏎️ Ergast API not accessible, using mock data');
     }
 
-    // No fallback data - return error if API fails
+    // Fallback to mock data if API failed
+    if (events.length === 0) {
+      if (year == 2024) {
+        events = mockEvents2024;
+      } else if (year == 2025) {
+        events = mockEvents2025;
+      } else {
+        // Use 2024 data as default
+        events = mockEvents2024;
+      }
+    }
 
     if (events.length === 0) {
       return res.status(404).json({ 
@@ -73,7 +83,7 @@ export default async function handler(req, res) {
       timestamp: new Date().toISOString()
     };
 
-    console.log(`🏎️ Successfully fetched ${events.length} events for ${year}`);
+    console.log(`🏎️ Successfully fetched ${events.length} events for ${year} from ${source}`);
     return res.status(200).json(responseData);
 
   } catch (error) {
