@@ -174,7 +174,7 @@ const BetListItemView: React.FC<BetListItemViewProps> = ({ bet, onSelect }) => {
             fontFamily: 'monospace',
             letterSpacing: '0.5px'
           }}>
-            {bet.id.slice(0, 8).toUpperCase()}
+            {String(bet.id).slice(0, 8).toUpperCase()}
           </span>
         </div>
         
